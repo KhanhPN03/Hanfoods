@@ -13,6 +13,17 @@ const orderSchema = new Schema(
       default: "pending",
     },
     addressId: { type: mongoose.Schema.Types.ObjectId, ref: "Address", required: true },
+    items: [
+      {
+        productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        quantity: { type: Number, required: true },
+        subtotal: { type: Number, required: true },
+      }
+    ],
+    discountId: { type: mongoose.Schema.Types.ObjectId, ref: "Discount" },
+    discountAmount: { type: Number, default: 0 },
     deleted: { type: Boolean, default: false },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Account" },
   },

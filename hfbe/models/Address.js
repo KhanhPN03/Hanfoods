@@ -11,6 +11,7 @@ const addressSchema = new Schema(
     state: { type: String, default: "" },
     country: { type: String, required: true },
     postalCode: { type: String, default: "" },
+    isDefault: { type: Boolean, default: false },
     deleted: { type: Boolean, default: false },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Account" },
   },

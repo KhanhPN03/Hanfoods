@@ -1,0 +1,60 @@
+Attempting to connect to MongoDB database: hanfoods...
+Successfully connected to MongoDB database: hanfoods
+Clearing existing data...
+All collections cleared
+Seeding database with enhanced test scenario data...
+
+Step 1: Creating categories with hierarchical structure...
+Created 3 main categories
+
+Step 2: Creating admin and customer users...
+Created 3 users (1 admin, 2 customers)
+Updated categories with admin as creator
+
+Step 3: Creating products in each category...
+Created 6 products across 3 categories
+
+Step 4: Creating product reviews...
+Created 7 product reviews
+
+Step 5: Creating payment methods...
+Created 3 payment methods
+
+Step 6: Creating discount codes...
+Created 2 discount codes
+
+Step 7: Creating addresses for customers...
+Created 4 addresses for customers
+
+Step 8: Creating carts for customers...
+Created 2 carts for customers
+
+Step 9: Creating wishlists for customers...
+Created 2 wishlist items for customers
+
+Step 10: Creating orders for customers...
+Created 4 orders with 8 order items
+Created 4 billing records
+
+Step 11: Verifying routes configuration...
+Found 10 route files
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\AddressController.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\AuthController.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\BillingController.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\CartController.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\DiscountController.js
+⚠️ Could not find controller import in healthRoutes.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\OrderController.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\PaymentController.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\ProductController.js
+⚠️ Controller file not found: D:\Hang_ngoo\web\controllers\WishlistController.js
+
+Enhanced database seeding completed successfully!
+Test accounts created:
+Admin - Email: admin@coconature.com, Password: Admin@123
+Customer 1 - Email: nguyen.khachhang@example.com, Password: Customer1@123
+Customer 2 - Email: tran.khachhang@example.com, Password: Customer2@123
+Disconnected from MongoDB
+
+Step 12: Validating database relationships...
+- Validating customer-cart relationships...
