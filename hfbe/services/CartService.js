@@ -7,10 +7,18 @@ class CartService {
   // Get or create a cart for a user
   async getOrCreateCart(userId) {
     try {
-      let cart = await Cart.findOne({ userId }).populate({
-        path: 'items.productId',
-        select: 'name price salePrice imageUrl stock'
-      });
+      let cart = await Cart.findOne({ userId })
+       .populate({
+        path: "items.productId",
+        select: "productId name price salePrice thumbnailImage stock description rating reviewCount materials dimensions", // Chỉ lấy các trường cần thiết
+        populate: {
+          path: "categoryId",
+          select: "name", // Chỉ lấy tên category
+        },
+      })
+      .lean();
+      console.log(cart);
+      
       
       if (!cart) {
         // Create a new cart if none exists
@@ -35,6 +43,7 @@ class CartService {
     try {
       // Check if product exists and has enough stock
       const product = await Product.findById(productId);
+      console.log("product",product);
       
       if (!product) {
         throw new Error('Product not found');
@@ -49,7 +58,7 @@ class CartService {
       
       // Check if product already in cart
       const existingItemIndex = cart.items.findIndex(
-        (item) => item.productId.toString() === productId.toString()
+        (item) => item.productId && item.productId._id && item.productId._id.toString() === productId.toString()
       );
       
       if (existingItemIndex >= 0) {
@@ -74,7 +83,12 @@ class CartService {
       // Return populated cart
       return await Cart.findById(cart._id).populate({
         path: 'items.productId',
-        select: 'name price salePrice imageUrl stock'
+        select: 'name price salePrice stock thumbnailImage images categoryId materials dimensions rating reviewCount description',
+        populate: {
+          path: 'categoryId',
+          select: 'name',
+          options: { strictPopulate: false }
+        }
       });
     } catch (error) {
       throw error;
@@ -84,11 +98,9 @@ class CartService {
   // Update cart item quantity
   async updateCartItem(userId, productId, quantity) {
     try {
-      // Validate quantity
       if (quantity < 1) {
         throw new Error('Quantity must be greater than 0');
       }
-      // Check product stock
       const product = await Product.findById(productId);
       if (!product) {
         throw new Error('Product not found');
@@ -96,11 +108,14 @@ class CartService {
       if (product.stock < quantity) {
         throw new Error('Not enough stock available');
       }
-      // Get or create cart
-      const cart = await this.getOrCreateCart(userId);
-      // Find item in cart
+      // Get or create cart (KHÔNG populate ở đây)
+      const cart = await Cart.findOne({ userId });
+      if (!cart) throw new Error('Cart not found');
+
+      // So sánh productId chuẩn xác
       const existingItemIndex = cart.items.findIndex(
-        (item) => item.productId.toString() === productId.toString()
+        (item) =>
+          (item.productId && item.productId.toString && item.productId.toString() === productId.toString())
       );
       if (existingItemIndex === -1) {
         // Nếu chưa có thì thêm mới
@@ -113,7 +128,12 @@ class CartService {
       // Return populated cart
       return await Cart.findById(cart._id).populate({
         path: 'items.productId',
-        select: 'name price salePrice imageUrl stock'
+        select: 'name price salePrice stock thumbnailImage images categoryId materials dimensions rating reviewCount description',
+        populate: {
+          path: 'categoryId',
+          select: 'name',
+          options: { strictPopulate: false }
+        }
       });
     } catch (error) {
       throw error;
@@ -140,7 +160,12 @@ class CartService {
       // Return populated cart
       return await Cart.findById(cart._id).populate({
         path: 'items.productId',
-        select: 'name price salePrice imageUrl stock'
+        select: 'name price salePrice stock thumbnailImage images categoryId materials dimensions rating reviewCount description',
+        populate: {
+          path: 'categoryId',
+          select: 'name',
+          options: { strictPopulate: false }
+        }
       });
     } catch (error) {
       throw error;
