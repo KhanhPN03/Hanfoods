@@ -4,24 +4,15 @@ const authenticate = require('../utils/authenticate');
 const passport = require('passport');
 
 class AuthController {
-  // Register a new user  async register(req, res) {
+  // Register a new user
+  async register(req, res) {
     try {
       console.log('Register request received:', JSON.stringify({
         headers: req.headers,
         body: req.body
       }, null, 2));
       
-      const { 
-        email, 
-        username, 
-        password, 
-        firstname, 
-        lastname, 
-        DOB, 
-        gender, 
-        phone,
-        addressData 
-      } = req.body;
+      const { email, username, password, firstname, lastname, DOB, gender, phone } = req.body;
       
       if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email and password are required' });
@@ -35,8 +26,7 @@ class AuthController {
         lastname,
         DOB,
         gender,
-        phone,
-        addressData
+        phone
       });
       
       // Generate JWT token for the new user
