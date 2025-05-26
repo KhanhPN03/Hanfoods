@@ -3,10 +3,10 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { v4: uuidv4 } = require('uuid');
 
-class CartService {
-  // Get or create a cart for a user
+class CartService {  // Get or create a cart for a user
   async getOrCreateCart(userId) {
     try {
+      // Loại bỏ .lean() để nhận được Mongoose document
       let cart = await Cart.findOne({ userId })
        .populate({
         path: "items.productId",
@@ -15,8 +15,7 @@ class CartService {
           path: "categoryId",
           select: "name", // Chỉ lấy tên category
         },
-      })
-      .lean();
+      });
       console.log(cart);
       
       
@@ -37,10 +36,13 @@ class CartService {
       throw error;
     }
   }
-  
-  // Add item to cart
+    // Add item to cart
   async addToCart(userId, productId, quantity) {
     try {
+      // Đảm bảo quantity là một số nguyên dương
+      const safeQuantity = Math.max(1, parseInt(quantity, 10) || 1);
+      console.log("CartService - Adding to cart:", { userId, productId, originalQuantity: quantity, safeQuantity });
+
       // Check if product exists and has enough stock
       const product = await Product.findById(productId);
       console.log("product",product);
@@ -49,33 +51,34 @@ class CartService {
         throw new Error('Product not found');
       }
       
-      if (product.stock < quantity) {
+      if (product.stock < safeQuantity) {
         throw new Error('Not enough stock available');
       }
       
       // Get or create cart
       const cart = await this.getOrCreateCart(userId);
-      
-      // Check if product already in cart
+        // Check if product already in cart
       const existingItemIndex = cart.items.findIndex(
         (item) => item.productId && item.productId._id && item.productId._id.toString() === productId.toString()
       );
       
       if (existingItemIndex >= 0) {
         // Update quantity if product already in cart
-        const newQuantity = cart.items[existingItemIndex].quantity + quantity;
+        const newQuantity = cart.items[existingItemIndex].quantity + safeQuantity;
         
         if (newQuantity > product.stock) {
           throw new Error('Cannot add more of this item due to stock limitations');
         }
         
         cart.items[existingItemIndex].quantity = newQuantity;
+        console.log(`CartService - Updating quantity for existing item: ${cart.items[existingItemIndex].quantity}`);
       } else {
         // Add new item to cart
         cart.items.push({
           productId,
-          quantity
+          quantity: safeQuantity
         });
+        console.log(`CartService - Adding new item with quantity: ${safeQuantity}`);
       }
       
       await cart.save();
@@ -175,17 +178,20 @@ class CartService {
   // Clear cart
   async clearCart(userId) {
     try {
-      // Find user's cart
-      const cart = await Cart.findOne({ userId });
-      
+      // Tìm cart, nếu không có thì tạo mới
+      let cart = await Cart.findOne({ userId });
       if (!cart) {
-        throw new Error('Cart not found');
+        const cartId = 'CART-' + uuidv4().substring(0, 8).toUpperCase();
+        cart = new Cart({
+          cartId,
+          userId,
+          items: [],
+          createdBy: userId
+        });
+      } else {
+        cart.items = [];
       }
-      
-      // Clear items
-      cart.items = [];
       await cart.save();
-      
       return cart;
     } catch (error) {
       throw error;

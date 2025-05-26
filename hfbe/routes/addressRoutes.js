@@ -7,6 +7,9 @@ const { isAuthenticated } = require('../middlewares/authMiddleware');
 // Get all addresses for a user
 router.get('/', isAuthenticated, AddressController.getUserAddresses);
 
+// Get default address for a user
+router.get('/default', isAuthenticated, AddressController.getDefaultAddress);
+
 // Get address by ID
 router.get('/:id', isAuthenticated, AddressController.getAddressById);
 

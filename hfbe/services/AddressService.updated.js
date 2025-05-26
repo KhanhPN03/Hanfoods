@@ -3,7 +3,8 @@ const Address = require('../models/Address');
 const { v4: uuidv4 } = require('uuid');
 
 class AddressService {
-  // Get user's addresses  async getUserAddresses(userId) {
+  // Get user's addresses
+  async getUserAddresses(userId) {
     try {
       const addresses = await Address.find({ userId });
       return addresses;
@@ -12,23 +13,7 @@ class AddressService {
     }
   }
   
-  // Get user's default address
-  async getUserDefaultAddress(userId) {
-    try {
-      // First try to find default address
-      let address = await Address.findOne({ userId, isDefault: true });
-      
-      // If no default address, get the first address
-      if (!address) {
-        address = await Address.findOne({ userId });
-      }
-      
-      return address;
-    } catch (error) {
-      throw error;
-    }
-  }
-    // Get address by ID
+  // Get address by ID
   async getAddressById(addressId, userId) {
     try {
       const address = await Address.findOne({ 
@@ -46,31 +31,7 @@ class AddressService {
     }
   }
   
-  // Find or create address based on checkout data
-  async findOrCreateAddress(userId, addressData) {
-    try {
-      // Check if a similar address already exists
-      const existingAddress = await Address.findOne({
-        userId,
-        street: addressData.address || '',
-        city: addressData.province || addressData.city || '',
-        state: addressData.district || '',
-        fullName: addressData.fullName || '',
-        phone: addressData.phone || '',
-        ward: addressData.ward || ''
-      });
-      
-      if (existingAddress) {
-        return existingAddress;
-      }
-      
-      // Create new address if not found
-      return await this.createAddress(userId, addressData);
-    } catch (error) {
-      throw error;
-    }
-  }
-    // Create new address
+  // Create new address
   async createAddress(userId, addressData) {
     try {
       // Generate unique addressId
@@ -100,6 +61,31 @@ class AddressService {
     }
   }
   
+  // Find or create address based on checkout data
+  async findOrCreateAddress(userId, addressData) {
+    try {
+      // Check if a similar address already exists
+      const existingAddress = await Address.findOne({
+        userId,
+        street: addressData.address || '',
+        city: addressData.province || addressData.city || '',
+        state: addressData.district || '',
+        fullName: addressData.fullName || '',
+        phone: addressData.phone || '',
+        ward: addressData.ward || ''
+      });
+      
+      if (existingAddress) {
+        return existingAddress;
+      }
+      
+      // Create new address if not found
+      return await this.createAddress(userId, addressData);
+    } catch (error) {
+      throw error;
+    }
+  }
+  
   // Update address
   async updateAddress(addressId, addressData, userId) {
     try {
@@ -113,11 +99,14 @@ class AddressService {
         addressId,
         {
           $set: {
-            street: addressData.street,
-            city: addressData.city,
-            state: addressData.state || '',
-            country: addressData.country,
+            street: addressData.street || addressData.address || '',
+            city: addressData.city || addressData.province || '',
+            state: addressData.state || addressData.district || '',
+            country: addressData.country || 'Vietnam',
             postalCode: addressData.postalCode || '',
+            fullName: addressData.fullName || '',
+            phone: addressData.phone || '',
+            ward: addressData.ward || ''
           }
         },
         { new: true }
@@ -128,7 +117,8 @@ class AddressService {
       throw error;
     }
   }
-    // Delete address
+  
+  // Delete address
   async deleteAddress(addressId, userId) {
     try {
       const address = await Address.findOne({ _id: addressId, userId });

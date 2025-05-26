@@ -40,13 +40,13 @@ class OrderController {
       // Add addressId to order data
       orderData.addressId = addressId;
       
+      // Create the order
       const order = await OrderService.createOrder(userId, orderData);
       
       return res.status(201).json({
         success: true,
         message: 'Order created successfully',
-        order,
-        orderCode: order.orderCode // Trả về orderCode cho client
+        order
       });
     } catch (error) {
       return res.status(400).json({

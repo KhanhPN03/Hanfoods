@@ -8,7 +8,7 @@ class BillingService {
   // Create a new billing record
   async createBilling(billingData, userId) {
     try {
-      const { orderId, paymentMethodId, amount, status = 'pending', transactionId = '' } = billingData;
+      const { orderId, paymentMethodId, amount, status = 'pending', transactionId = '', addressId } = billingData;
       
       // Check if order exists
       const order = await Order.findById(orderId);
@@ -30,6 +30,7 @@ class BillingService {
         billingId,
         orderId,
         paymentMethodId,
+        addressId: addressId || (order && order.addressId),
         amount,
         status,
         transactionId,

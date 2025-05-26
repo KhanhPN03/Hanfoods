@@ -1,9 +1,11 @@
 // Services related to authentication and user management
 const Account = require('../models/Account');
+const Address = require('../models/Address');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const { v4: uuidv4 } = require('uuid');
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
+const AddressService = require('./AddressService');
 
 class AuthService {
   constructor() {
@@ -66,8 +68,7 @@ class AuthService {
         }
       )
     );
-  }
-  async registerUser(userData) {
+  }  async registerUser(userData) {
     try {
       // Check if user already exists
       const existingUser = await Account.findOne({ email: userData.email });
@@ -101,6 +102,27 @@ class AuthService {
 
       // Register user with passport-local-mongoose
       await Account.register(newUser, userData.password);
+      
+      // Create address if address data is provided
+      if (userData.addressData) {
+        try {
+          const addressData = {
+            ...userData.addressData,
+            userId: newUser._id
+          };
+          
+          // Create address using AddressService
+          const address = await AddressService.createAddress(newUser._id, addressData);
+          
+          // Update user account with the new address ID
+          newUser.addressId = address._id;
+          await newUser.save();
+        } catch (addressError) {
+          console.error('Error creating address during registration:', addressError);
+          // Continue with registration even if address creation fails
+        }
+      }
+      
       return newUser;
     } catch (error) {
       throw error;

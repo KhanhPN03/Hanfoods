@@ -6,6 +6,7 @@ const orderSchema = new Schema(
   {
     orderId: { type: String, unique: true, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "Account", required: true },
+    email: { type: String, required: true }, // Thêm trường email
     totalAmount: { type: Number, required: true, min: 0 },
     status: {
       type: String,
@@ -26,6 +27,7 @@ const orderSchema = new Schema(
     discountAmount: { type: Number, default: 0 },
     deleted: { type: Boolean, default: false },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Account" },
+    orderCode: { type: String, unique: true, required: true }, // Mã đơn hàng 8 ký tự
   },
   {
     collection: "Order",
