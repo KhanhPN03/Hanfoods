@@ -1,0 +1,396 @@
+/* Account Management Styles */
+.account-management {
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Account Table Styling */
+.accounts-table .account-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accounts-table .avatar-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e9ecef;
+}
+
+.accounts-table .account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accounts-table .account-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.accounts-table .account-email {
+  font-size: 13px;
+  color: #666;
+}
+
+.accounts-table .account-code {
+  font-size: 12px;
+  color: #999;
+  font-family: 'Courier New', monospace;
+}
+
+.accounts-table .contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accounts-table .contact-info .phone,
+.accounts-table .contact-info .birthday {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Role and Status Badges */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.role-admin {
+  background: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #bbdefb;
+}
+
+.role-badge.role-customer {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #ce93d8;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.status-active {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.status-badge.status-inactive {
+  background: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffcc02;
+}
+
+.status-badge.status-deleted {
+  background: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ef9a9a;
+}
+
+/* Filters */
+.filters-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.clear-filters-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.clear-filters-btn:hover {
+  background: #5a6268;
+}
+
+/* Account Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #f8f9fa;
+  color: #333;
+}
+
+/* Account Form */
+.account-form {
+  padding: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: #dc3545;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.form-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.form-group label:has(input[type="checkbox"]) {
+  flex-direction: row;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-cancel {
+  padding: 12px 24px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #5a6268;
+}
+
+.btn-primary {
+  padding: 12px 24px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .account-management {
+    padding: 16px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-select {
+    min-width: auto;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-header {
+    padding: 20px;
+  }
+
+  .account-form {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .accounts-table .account-info {
+    min-width: 180px;
+  }
+
+  .accounts-table .contact-info {
+    min-width: 120px;
+  }
+
+  .page-header {
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+}

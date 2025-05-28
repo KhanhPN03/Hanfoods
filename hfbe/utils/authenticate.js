@@ -38,3 +38,21 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts, async (jwt_payload, don
 }));
 
 exports.verifyUser = passport.authenticate('jwt', {session: false}); // thông tin đc lưu trữ dạng token không cần lưu trữ trên server
+
+exports.refreshToken = (token) => {
+    try {
+        // Verify the old token (ignore expiration)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-fallback-secret-key', { ignoreExpiration: true });
+        
+        // Create new token with same payload but fresh expiration
+        const newToken = jwt.sign(
+            { _id: decoded._id }, 
+            process.env.JWT_SECRET || 'your-fallback-secret-key', 
+            { expiresIn: 3600 }
+        );
+        
+        return newToken;
+    } catch (error) {
+        throw new Error('Invalid token');
+    }
+}

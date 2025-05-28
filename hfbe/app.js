@@ -238,16 +238,7 @@ const initializeRoutes = () => {
     app.use("/api/wishlists", wishlistRoutes);
     console.log("Wishlist routes loaded successfully");
   } catch (error) {
-    console.error("Error loading wishlist routes:", error.message);
-  }
-
-  // Debug routes (for development only)
-  try {
-    const debugRoutes = require("./routes/debugRoutes");
-    app.use("/api", debugRoutes);
-    console.log("Debug routes loaded successfully");
-  } catch (error) {
-    console.error("Error loading debug routes:", error.message);
+  console.error("Error loading wishlist routes:", error.message);
   }
 
   // Error handling middleware

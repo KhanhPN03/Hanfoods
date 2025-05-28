@@ -29,6 +29,9 @@ router.get('/current-user', isAuthenticated, AuthController.getCurrentUser);
 // Logout route
 router.post('/logout', AuthController.logout);
 
+// Refresh token route
+router.post('/refresh-token', AuthController.refreshToken);
+
 // Update profile
 router.put('/profile', isAuthenticated, AuthController.updateProfile);
 

@@ -1,0 +1,76 @@
+/* Checkout Scroll Fix CSS */
+
+/* Fix scrolling issues on checkout pages */
+.checkout-page-wrapper {
+  height: auto;
+  min-height: calc(100vh - 80px); /* Account for header height */
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding-bottom: 30px;
+}
+
+/* Fix container heights */
+.checkout-container,
+.payment-container {
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Form scroll fixes */
+.checkout-form {
+  overflow: visible;
+  height: auto;
+  margin-bottom: 30px;
+}
+
+/* Step indicators */
+.checkout-steps {
+  position: sticky;
+  top: 60px; /* Below header */
+  background: white;
+  z-index: 10;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Payment methods */
+.payment-methods {
+  overflow: visible;
+  height: auto;
+}
+
+/* QR code container */
+.qr-code-container {
+  overflow: auto;
+  max-height: 500px;
+  margin: 20px 0;
+}
+
+/* For iOS Safari scroll issues */
+@supports (-webkit-touch-callout: none) {
+  .checkout-page-wrapper,
+  .checkout-container,
+  .payment-container,
+  .checkout-form,
+  .payment-methods {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .checkout-form {
+    padding-bottom: 100px; /* Extra space for mobile */
+  }
+  
+  .checkout-page-wrapper {
+    padding-bottom: 60px;
+  }
+}

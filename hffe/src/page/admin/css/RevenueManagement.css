@@ -1,0 +1,381 @@
+/* Revenue Management Specific Styles */
+.revenue-management {
+  padding: 24px;
+}
+
+/* Date Range Picker */
+.date-range-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+}
+
+.date-range-picker svg {
+  color: #6b7280;
+}
+
+.date-range-picker input[type="date"] {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #374151;
+}
+
+.date-range-picker span {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Export Button */
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.export-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Large Chart Card */
+.chart-card.large {
+  grid-column: span 2;
+}
+
+@media (max-width: 1024px) {
+  .chart-card.large {
+    grid-column: span 1;
+  }
+}
+
+/* Top Products Section */
+.top-products-section {
+  margin: 24px 0;
+}
+
+.top-products-section h3 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.top-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.product-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.product-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.product-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.product-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.product-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-stats span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.product-stats .revenue {
+  font-weight: 600;
+  color: #10b981;
+}
+
+.product-stats .orders {
+  color: #3b82f6;
+}
+
+.product-stats .percentage {
+  color: #f59e0b;
+}
+
+/* Revenue Table Styles */
+.revenue-table {
+  margin-top: 24px;
+}
+
+.revenue-cell {
+  font-weight: 600;
+  color: #10b981;
+}
+
+.profit-cell {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.margin-cell {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.margin-cell.good {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.margin-cell.average {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.margin-cell.low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Format StatCard for currency */
+.stat-card[data-format="currency"] .stat-value::after {
+  content: " đ";
+  font-size: 0.8em;
+  color: #6b7280;
+}
+
+/* Enhanced Dashboard Header for Revenue */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Analytics Section Styles */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.analytics-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.metric-item:last-child {
+  border-bottom: none;
+}
+
+.metric-value {
+  font-weight: 600;
+}
+
+.metric-value.positive {
+  color: #10b981;
+}
+
+.metric-value.negative {
+  color: #ef4444;
+}
+
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.insight-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.insight-item:last-child {
+  border-bottom: none;
+}
+
+.insight-item strong {
+  color: #111827;
+}
+
+/* Export Options */
+.export-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.export-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.export-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.export-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .revenue-management {
+    padding: 16px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .dashboard-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .date-range-picker {
+    justify-content: space-between;
+  }
+  
+  .top-products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .export-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .export-option {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .revenue-management {
+    background: #111827;
+    color: #f9fafb;
+  }
+  
+  .date-range-picker {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .date-range-picker input[type="date"] {
+    background: transparent;
+    color: #f9fafb;
+  }
+  
+  .product-card {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .product-card:hover {
+    border-color: #3b82f6;
+    background: #1e40af;
+  }
+  
+  .export-option {
+    background: #1f2937;
+    border-color: #374151;
+  }
+}

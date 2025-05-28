@@ -1,0 +1,50 @@
+/* Shopee-style section backgrounds and tab layout for ProductTabs */
+.product-tabs {
+  background: var(--color-bg-light);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+  padding: 2rem 0 0 0;
+}
+.tabs-header {
+  display: flex;
+  background: var(--color-bg-cream);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+  overflow: hidden;
+  border-bottom: 1.5px solid var(--color-accent-light);
+}
+.tab-button {
+  flex: 1;
+  padding: 1.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.tab-button.active {
+  background: var(--color-white);
+  color: var(--color-primary);
+  border-bottom: 3px solid var(--color-primary);
+}
+.tab-content {
+  background: var(--color-white);
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+  padding: 2rem 2.5rem 2.5rem 2.5rem;
+  min-height: 300px;
+}
+@media (max-width: 768px) {
+  .product-tabs {
+    padding: 0.5rem 0 0 0;
+  }
+  .tab-content {
+    padding: 1rem 0.5rem 1.5rem 0.5rem;
+  }
+  .tabs-header {
+    flex-direction: column;
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  }
+}

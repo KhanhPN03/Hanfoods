@@ -1,0 +1,26 @@
+/* Loading button styles */
+.addToCartButton.loading {
+  position: relative;
+  background: var(--color-accent);
+  opacity: 0.8;
+  cursor: wait;
+}
+
+.addToCartButton.loading::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-top: -10px;
+  margin-left: -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

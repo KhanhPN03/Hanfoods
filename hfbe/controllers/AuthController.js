@@ -158,7 +158,6 @@ class AuthController {  // Register a new user
       return res.status(400).json({ success: false, message: error.message });
     }
   }
-
   // Change password
   async changePassword(req, res) {
     try {
@@ -178,6 +177,28 @@ class AuthController {  // Register a new user
       return res.status(200).json({ success: true, message: 'Password changed successfully' });
     } catch (error) {
       return res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  // Refresh token
+  async refreshToken(req, res) {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '') || req.body.token;
+      
+      if (!token) {
+        return res.status(401).json({ success: false, message: 'No token provided' });
+      }
+      
+      // Verify and generate new token
+      const newToken = authenticate.refreshToken(token);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Token refreshed successfully',
+        token: newToken
+      });
+    } catch (error) {
+      return res.status(401).json({ success: false, message: error.message });
     }
   }
 }

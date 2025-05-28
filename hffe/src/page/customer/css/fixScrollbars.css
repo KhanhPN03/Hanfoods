@@ -1,0 +1,77 @@
+/* Global scroll fixes for the application */
+
+/* Ensure the html and body can scroll properly */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  -webkit-overflow-scrolling: touch; /* Better scrolling on iOS */
+}
+
+/* Ensure only one scrollbar is shown */
+body {
+  overflow-y: auto;
+}
+
+/* Prevent auth pages from having double scrollbars */
+.auth-page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.auth-main {
+  flex: 1;
+  overflow-y: visible;
+}
+
+.auth-content-wrapper {
+  overflow: visible;
+}
+
+/* Fix cart page scrolling */
+.cart-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.cart-main {
+  flex: 1;
+  overflow-y: visible;
+  padding-bottom: 2rem;
+  margin-top: 80px;
+}
+
+/* Ensure content doesn't get cut off at the bottom */
+.footer-spacer {
+  height: 1rem;
+}
+
+/* Fix footers to ensure they don't overlap with content */
+.footerSection {
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  margin-top: auto;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+  .auth-content-wrapper,
+  .cart-content {
+    flex-direction: column;
+  }
+}
+
+/* Fix for iOS and Safari */
+@supports (-webkit-touch-callout: none) {
+  .auth-page-container,
+  .cart-page {
+    /* iOS-specific override */
+    min-height: -webkit-fill-available;
+  }
+}
