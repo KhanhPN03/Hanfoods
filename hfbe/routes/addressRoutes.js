@@ -22,4 +22,7 @@ router.delete('/:id', isAuthenticated, AddressController.deleteAddress);
 // Set address as default
 router.patch('/:id/default', isAuthenticated, AddressController.setAsDefault);
 
+// Find or create address (for checkout to prevent duplicates)
+router.post('/find-or-create', isAuthenticated, AddressController.findOrCreateAddress);
+
 module.exports = router;

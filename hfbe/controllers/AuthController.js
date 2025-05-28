@@ -3,8 +3,7 @@ const AuthService = require('../services/AuthService');
 const authenticate = require('../utils/authenticate');
 const passport = require('passport');
 
-class AuthController {
-  // Register a new user
+class AuthController {  // Register a new user
   async register(req, res) {
     try {
       console.log('Register request received:', JSON.stringify({
@@ -12,7 +11,17 @@ class AuthController {
         body: req.body
       }, null, 2));
       
-      const { email, username, password, firstname, lastname, DOB, gender, phone } = req.body;
+      const { 
+        email, 
+        username, 
+        password, 
+        firstname, 
+        lastname, 
+        DOB, 
+        gender, 
+        phone,
+        address 
+      } = req.body;
       
       if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email and password are required' });
@@ -26,7 +35,8 @@ class AuthController {
         lastname,
         DOB,
         gender,
-        phone
+        phone,
+        address
       });
       
       // Generate JWT token for the new user

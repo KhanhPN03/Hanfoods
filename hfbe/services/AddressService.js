@@ -60,70 +60,30 @@ class AddressService {
       throw error;
     }
   }
-    // Find or create address based on checkout data
+  
+  // Find or create address based on checkout data
   async findOrCreateAddress(userId, addressData) {
     try {
-      // Normalize address data to handle different input formats
-      const normalizedAddress = {
-        street: addressData.address || addressData.street || '',
+      // Check if a similar address already exists
+      const existingAddress = await Address.findOne({
+        userId,
+        street: addressData.address || '',
         city: addressData.province || addressData.city || '',
-        state: addressData.district || addressData.state || '',
-        ward: addressData.ward || '',
+        state: addressData.district || '',
         fullName: addressData.fullName || '',
-        phone: addressData.phone || ''
-      };
-      
-      // Clean up strings by trimming and converting to lowercase for better comparison
-      Object.keys(normalizedAddress).forEach(key => {
-        if (typeof normalizedAddress[key] === 'string') {
-          normalizedAddress[key] = normalizedAddress[key].trim().toLowerCase();
-        }
+        phone: addressData.phone || '',
+        ward: addressData.ward || ''
       });
       
-      // Create query to find similar addresses
-      // A similar address must match on street, city, state, ward, and contact info
-      const query = {
-        userId,
-        $or: [
-          // Exact match on all important fields
-          {
-            street: { $regex: new RegExp('^' + escapeRegExp(normalizedAddress.street) + '$', 'i') },
-            city: { $regex: new RegExp('^' + escapeRegExp(normalizedAddress.city) + '$', 'i') },
-            state: { $regex: new RegExp('^' + escapeRegExp(normalizedAddress.state) + '$', 'i') },
-            ward: { $regex: new RegExp('^' + escapeRegExp(normalizedAddress.ward) + '$', 'i') },
-            phone: normalizedAddress.phone
-          },
-          // Match with different capitalization or minor differences
-          {
-            street: { $regex: new RegExp(escapeRegExp(normalizedAddress.street), 'i') },
-            city: { $regex: new RegExp(escapeRegExp(normalizedAddress.city), 'i') },
-            state: { $regex: new RegExp(escapeRegExp(normalizedAddress.state), 'i') },
-            ward: { $regex: new RegExp(escapeRegExp(normalizedAddress.ward), 'i') },
-            phone: normalizedAddress.phone,
-            fullName: { $regex: new RegExp(escapeRegExp(normalizedAddress.fullName), 'i') }
-          }
-        ]
-      };
-      
-      const existingAddress = await Address.findOne(query);
-      
       if (existingAddress) {
-        console.log('Found existing address, returning it instead of creating a new one');
         return existingAddress;
       }
       
       // Create new address if not found
-      console.log('No existing address found, creating a new one');
       return await this.createAddress(userId, addressData);
     } catch (error) {
-      console.error('Error in findOrCreateAddress:', error);
       throw error;
     }
-  }
-  
-  // Helper function to escape special characters in regex
-  escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
   
   // Update address

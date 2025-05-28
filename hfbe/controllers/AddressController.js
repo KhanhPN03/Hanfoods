@@ -33,14 +33,13 @@ class AddressController {
       return res.status(404).json({ success: false, message: error.message });
     }
   }
-  
-  // Create new address
+    // Create new address
   async createAddress(req, res) {
     try {
-      const { street, city, state, country, postalCode } = req.body;
       const userId = req.user._id;
       
       // Validate required fields
+      const { street, city, country, fullName, phone } = req.body;
       if (!street || !city || !country) {
         return res.status(400).json({ 
           success: false, 
@@ -48,7 +47,7 @@ class AddressController {
         });
       }
       
-      const newAddress = await AddressService.createAddress(req.body, userId);
+      const newAddress = await AddressService.createAddress(userId, req.body);
       
       return res.status(201).json({
         success: true,
@@ -93,8 +92,7 @@ class AddressController {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
-  
-  // Set address as default
+    // Set address as default
   async setAsDefault(req, res) {
     try {
       const { id } = req.params;
@@ -106,6 +104,24 @@ class AddressController {
         success: true,
         message: 'Address set as default successfully',
         address
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // Find or create address (for checkout to prevent duplicates)
+  async findOrCreateAddress(req, res) {
+    try {
+      const userId = req.user._id;
+      const addressData = req.body;
+      
+      const address = await AddressService.findOrCreateAddress(userId, addressData);
+      
+      return res.status(200).json({
+        success: true,
+        address,
+        isNew: !address.createdAt || Date.now() - new Date(address.createdAt).getTime() < 1000
       });
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });

@@ -1,59 +1,336 @@
+// Order Service with support for checkout process from frontend
 const Order = require('../models/Order');
+const Cart = require('../models/Cart');
+const Product = require('../models/Product');
+const DiscountService = require('./DiscountService');
+const AddressService = require('./AddressService.updated');
 const { v4: uuidv4 } = require('uuid');
 
-function generateOrderCode(length = 8) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let code = '';
-  for (let i = 0; i < length; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
-const OrderService = {
+class OrderService {
+  // Create a new order with items directly from frontend
   async createOrder(userId, orderData) {
-    // Tạo orderId mới
-    const orderId = 'ORD-' + uuidv4().substring(0, 8).toUpperCase();
-    // Sinh orderCode 8 ký tự ngẫu nhiên
-    const orderCode = generateOrderCode(8);
-    // Tạo mới Order
-    const newOrder = new Order({
-      ...orderData,
-      userId,
-      orderId,
-      orderCode
-    });
-    await newOrder.save();
-    return newOrder;
-  },
+    try {
+      const { items, shippingAddress, paymentMethod, status = 'pending', subtotal, shippingFee = 0, discount = 0, total, discountCode } = orderData;
+      
+      if (!items || !items.length) {
+        throw new Error('Order must contain at least one item');
+      }
+      
+      // Handle address - create or find an existing one
+      let addressId;
+      if (orderData.addressId) {
+        // Use provided addressId
+        addressId = orderData.addressId;
+      } else if (shippingAddress) {
+        // Create or find address from shippingAddress
+        const address = await AddressService.findOrCreateAddress(userId, shippingAddress);
+        addressId = address._id;
+      } else {
+        throw new Error('Shipping address is required');
+      }
+      
+      // Check product stock before proceeding
+      for (const item of items) {
+        const product = await Product.findById(item.productId);
+        
+        if (!product) {
+          throw new Error(`Product ${item.productId} not found`);
+        }
+        
+        if (product.stock < item.quantity) {
+          throw new Error(`Not enough stock for ${product.name || 'product'}`);
+        }
+      }
+      
+      // Calculate order total if not provided
+      let totalAmount = total;
+      if (!totalAmount) {
+        totalAmount = subtotal + shippingFee - discount;
+      }
+      
+      // Map items to order format
+      const orderItems = [];
+      for (const item of items) {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+          throw new Error(`Product ${item.productId} not found`);
+        }
+        
+        const price = item.price || (product.salePrice > 0 ? product.salePrice : product.price);
+        
+        orderItems.push({
+          productId: product._id,
+          name: product.name,
+          price: price,
+          quantity: item.quantity,
+          subtotal: price * item.quantity
+        });
+      }
+      
+      // Apply discount if provided
+      let discountAmount = discount;
+      let discountId = null;
+      
+      if (discountCode && !discountAmount) {
+        try {
+          const discountResult = await DiscountService.applyDiscount(discountCode, subtotal);
+          discountAmount = discountResult.discountAmount;
+          discountId = discountResult.discount._id;
+          totalAmount -= discountAmount;
+        } catch (error) {
+          // If discount is invalid, continue without applying discount
+          console.error('Discount error:', error.message);
+        }
+      }
+      
+      // Generate order ID
+      const orderId = 'ORD-' + uuidv4().substring(0, 8).toUpperCase();
+      
+      // Create order
+      const newOrder = new Order({
+        orderId,
+        userId,
+        email: orderData.email, // Thêm email vào khi tạo order
+        totalAmount,
+        status: status || 'pending',
+        addressId,
+        items: orderItems,
+        discountId,
+        discountAmount,
+        paymentMethod,
+        isPaid: status === 'paid',
+        paidAt: status === 'paid' ? new Date() : null,
+        shippingFee,
+        createdBy: userId
+      });
+      
+      // Save the order
+      const savedOrder = await newOrder.save();
+      
+      // Update product stock
+      for (const item of items) {
+        await Product.findByIdAndUpdate(
+          item.productId,
+          { $inc: { stock: -item.quantity } }
+        );
+      }
+      
+      // Clear the user's cart if order is created
+      try {
+        const cart = await Cart.findOne({ userId });
+        if (cart) {
+          cart.items = [];
+          await cart.save();
+        }
+      } catch (cartError) {
+        console.error('Error clearing cart:', cartError);
+        // Don't fail the order if cart clearing fails
+      }
+      
+      return savedOrder;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  // Get all orders (admin)
+  async getAllOrders(filters = {}) {
+    try {
+      const { status, startDate, endDate } = filters;
+      const query = { deleted: false };
+      
+      // Apply filters
+      if (status) {
+        query.status = status;
+      }
+      
+      if (startDate && endDate) {
+        query.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        };
+      }
+      
+      const orders = await Order.find(query)
+        .populate('userId', 'username email')
+        .populate('addressId')
+        .sort({ createdAt: -1 });
+        
+      return orders;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  // Get user orders
   async getUserOrders(userId) {
     try {
       const orders = await Order.find({ userId, deleted: false })
         .populate('addressId')
         .sort({ createdAt: -1 });
+        
       return orders;
     } catch (error) {
       throw error;
     }
-  },
+  }
+  
+  // Get order by ID
   async getOrderById(orderId, userId = null) {
     try {
       const query = { _id: orderId, deleted: false };
+      
+      // If userId provided, ensure order belongs to user
       if (userId) {
         query.userId = userId;
       }
+      
       const order = await Order.findOne(query)
         .populate('userId', 'username email')
         .populate('addressId');
+        
       if (!order) {
         throw new Error('Order not found');
       }
+      
       return order;
     } catch (error) {
       throw error;
     }
-  },
-  // ...có thể bổ sung các hàm khác nếu cần...
-};
+  }
+  
+  // Update order status (admin)
+  async updateOrderStatus(orderId, status, userId) {
+    try {
+      const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'paid'];
+      
+      if (!validStatuses.includes(status)) {
+        throw new Error('Invalid order status');
+      }
+      
+      const order = await Order.findById(orderId);
+      
+      if (!order) {
+        throw new Error('Order not found');
+      }
+      
+      // Handle stock adjustment if order is cancelled
+      if (status === 'cancelled' && order.status !== 'cancelled') {
+        // Restore product stock
+        for (const item of order.items) {
+          await Product.findByIdAndUpdate(
+            item.productId,
+            { $inc: { stock: item.quantity } }
+          );
+        }
+      }
+      
+      // Update payment status if needed
+      if (status === 'paid' && !order.isPaid) {
+        order.isPaid = true;
+        order.paidAt = new Date();
+      }
+      
+      order.status = status;
+      await order.save();
+      
+      return order;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  // Cancel order (user)
+  async cancelOrder(orderId, userId) {
+    try {
+      const order = await Order.findOne({ _id: orderId, userId });
+      
+      if (!order) {
+        throw new Error('Order not found');
+      }
+      
+      // Can only cancel if order is in pending or processing state
+      if (!['pending', 'processing'].includes(order.status)) {
+        throw new Error('Cannot cancel order in current status');
+      }
+      
+      // Restore product stock
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(
+          item.productId,
+          { $inc: { stock: item.quantity } }
+        );
+      }
+      
+      order.status = 'cancelled';
+      await order.save();
+      
+      return order;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  // Generate order report (admin)
+  async generateOrderReport(startDate, endDate) {
+    try {
+      const report = await Order.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: new Date(startDate),
+              $lte: new Date(endDate)
+            },
+            deleted: false
+          }
+        },
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+            totalAmount: { $sum: "$totalAmount" }
+          }
+        }
+      ]);
+      
+      const totalOrders = await Order.countDocuments({
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        },
+        deleted: false
+      });
+      
+      const totalRevenue = await Order.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: new Date(startDate),
+              $lte: new Date(endDate)
+            },
+            status: { $in: ['processing', 'shipped', 'delivered', 'paid'] },
+            deleted: false
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$totalAmount" }
+          }
+        }
+      ]);
+      
+      return {
+        startDate,
+        endDate,
+        totalOrders,
+        totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
+        statusBreakdown: report
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+}
 
-module.exports = OrderService;
+module.exports = new OrderService();

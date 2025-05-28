@@ -1,8 +1,0 @@
-[2025-05-19T15:47:35.351Z] Starting Product model test
-[2025-05-19T15:47:35.354Z] Connecting to MongoDB...
-[2025-05-19T15:48:05.380Z] MongoDB connection error: connect ECONNREFUSED 127.0.0.1:5000
-[2025-05-19T15:48:05.381Z] Error stack: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:5000
-    at _handleConnectionErrors (D:\Hang_ngoo\web\hfbe\node_modules\mongoose\lib\connection.js:1165:11)
-    at NativeConnection.openUri (D:\Hang_ngoo\web\hfbe\node_modules\mongoose\lib\connection.js:1096:11)
-    at async testProductModel (D:\Hang_ngoo\web\hfbe\test-product-model.js:24:5)
-[2025-05-19T15:48:05.381Z] Test completed. Log saved to D:\Hang_ngoo\web\hfbe\product-model-test.log
