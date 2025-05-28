@@ -295,6 +295,152 @@ class ProductService {    async getAllProducts(query = {}) {
       throw error;
     }
   }
+  
+  // Admin-specific service methods
+  async getProductStats() {
+    try {
+      checkDatabaseConnection();
+      
+      const [
+        totalProducts,
+        totalCategories,
+        lowStockCount,
+        outOfStockCount,
+        averagePrice,
+        totalValue
+      ] = await Promise.all([
+        Product.countDocuments({ deleted: false }),
+        Category.countDocuments({ deleted: false }),
+        Product.countDocuments({ quantity: { $lte: 10, $gt: 0 }, deleted: false }),
+        Product.countDocuments({ quantity: 0, deleted: false }),
+        Product.aggregate([
+          { $match: { deleted: false } },
+          { $group: { _id: null, avgPrice: { $avg: '$price' } } }
+        ]),
+        Product.aggregate([
+          { $match: { deleted: false } },
+          { $group: { _id: null, totalValue: { $sum: { $multiply: ['$price', '$quantity'] } } } }
+        ])
+      ]);
+
+      return {
+        totalProducts,
+        totalCategories,
+        lowStockCount,
+        outOfStockCount,
+        averagePrice: averagePrice[0]?.avgPrice || 0,
+        totalValue: totalValue[0]?.totalValue || 0
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getTopProducts(limit = 10, sortBy = 'sales') {
+    try {
+      checkDatabaseConnection();
+      
+      let sortOptions = {};
+      switch (sortBy) {
+        case 'sales':
+          sortOptions = { salesCount: -1 };
+          break;
+        case 'revenue':
+          sortOptions = { revenue: -1 };
+          break;
+        case 'views':
+          sortOptions = { viewCount: -1 };
+          break;
+        default:
+          sortOptions = { salesCount: -1 };
+      }
+
+      const products = await Product.find({ deleted: false })
+        .populate('categoryId', 'name')
+        .sort(sortOptions)
+        .limit(parseInt(limit))
+        .select('name price quantity salesCount revenue viewCount categoryId imageUrl');
+
+      return products;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getLowStockProducts(threshold = 10) {
+    try {
+      checkDatabaseConnection();
+      
+      const products = await Product.find({
+        quantity: { $lte: threshold, $gt: 0 },
+        deleted: false
+      })
+      .populate('categoryId', 'name')
+      .sort({ quantity: 1 })
+      .select('name price quantity categoryId imageUrl');
+
+      return products;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async bulkUpdateProducts(productIds, updates) {
+    try {
+      checkDatabaseConnection();
+      
+      const result = await Product.updateMany(
+        { _id: { $in: productIds }, deleted: false },
+        { $set: updates },
+        { runValidators: true }
+      );
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async exportProducts(filters = {}, format = 'csv') {
+    try {
+      checkDatabaseConnection();
+      
+      const query = { deleted: false, ...filters };
+      const products = await Product.find(query)
+        .populate('categoryId', 'name')
+        .select('name description price quantity categoryId salesCount revenue imageUrl createdAt updatedAt');
+
+      if (format === 'csv') {
+        // Convert to CSV format
+        const headers = ['ID', 'Name', 'Description', 'Price', 'Quantity', 'Category', 'Sales Count', 'Revenue', 'Image URL', 'Created At', 'Updated At'];
+        const csvRows = [headers.join(',')];
+        
+        products.forEach(product => {
+          const row = [
+            product._id,
+            `"${product.name}"`,
+            `"${product.description || ''}"`,
+            product.price,
+            product.quantity,
+            `"${product.categoryId?.name || ''}"`,
+            product.salesCount || 0,
+            product.revenue || 0,
+            `"${product.imageUrl || ''}"`,
+            product.createdAt?.toISOString() || '',
+            product.updatedAt?.toISOString() || ''
+          ];
+          csvRows.push(row.join(','));
+        });
+        
+        return csvRows.join('\n');
+      } else {
+        // Return JSON format
+        return JSON.stringify(products, null, 2);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new ProductService();

@@ -7,8 +7,12 @@ const { isAuthenticated, isAdmin } = require('../middlewares/authMiddleware');
 // Create a new order
 router.post('/', isAuthenticated, OrderController.createOrder);
 
-// Get all orders (admin only)
+// Admin-specific routes
 router.get('/admin', isAuthenticated, isAdmin, OrderController.getAllOrders);
+router.get('/admin/stats', isAuthenticated, isAdmin, OrderController.getOrderStats);
+router.get('/admin/recent', isAuthenticated, isAdmin, OrderController.getRecentOrders);
+router.get('/admin/revenue', isAuthenticated, isAdmin, OrderController.getRevenueAnalytics);
+router.get('/admin/export', isAuthenticated, isAdmin, OrderController.exportOrders);
 
 // Get user orders
 router.get('/user', isAuthenticated, OrderController.getUserOrders);

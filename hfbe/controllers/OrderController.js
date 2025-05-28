@@ -194,6 +194,79 @@ class OrderController {
       });
     }
   }
+
+  // Admin-specific methods
+  async getOrderStats(req, res) {
+    try {
+      const stats = await OrderService.getOrderStats();
+      
+      return res.status(200).json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error('Error getting order stats:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async getRecentOrders(req, res) {
+    try {
+      const limit = parseInt(req.query.limit) || 10;
+      const orders = await OrderService.getRecentOrders(limit);
+      
+      return res.status(200).json({
+        success: true,
+        data: orders
+      });
+    } catch (error) {
+      console.error('Error getting recent orders:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async getRevenueAnalytics(req, res) {
+    try {
+      const period = req.query.period || 'month';
+      const analytics = await OrderService.getRevenueAnalytics(period);
+      
+      return res.status(200).json({
+        success: true,
+        data: analytics
+      });
+    } catch (error) {
+      console.error('Error getting revenue analytics:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async exportOrders(req, res) {
+    try {
+      const filters = req.query;
+      const exportData = await OrderService.exportOrders(filters);
+      
+      return res.status(200).json({
+        success: true,
+        data: exportData,
+        filename: `orders_export_${new Date().toISOString().split('T')[0]}.csv`
+      });
+    } catch (error) {
+      console.error('Error exporting orders:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = new OrderController();

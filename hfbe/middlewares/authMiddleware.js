@@ -1,6 +1,6 @@
 // Authentication middleware
 const passport = require('passport');
-const authenticate = require('../utils/authenticate');
+const { verifyUser } = require('../utils/authenticate');
 
 // Check if user is authenticated via session or JWT
 const isAuthenticated = (req, res, next) => {
@@ -79,12 +79,23 @@ const isUserOrAdmin = (req, res, next) => {
       return next();
     }
     
-    return res.status(403).json({ success: false, message: 'Access denied. Unauthorized.' });
-  })(req, res, next);
+    return res.status(403).json({ success: false, message: 'Access denied. Unauthorized.' });  })(req, res, next);
+};
+
+// Simple authenticate middleware (alias for isAuthenticated)
+const authenticate = (req, res, next) => {
+  return isAuthenticated(req, res, next);
+};
+
+// Simple requireAdmin middleware (alias for isAdmin)
+const requireAdmin = (req, res, next) => {
+  return isAdmin(req, res, next);
 };
 
 module.exports = {
   isAuthenticated,
   isAdmin,
-  isUserOrAdmin
+  isUserOrAdmin,
+  authenticate,
+  requireAdmin
 };

@@ -177,10 +177,17 @@ const initializeRoutes = () => {
     app.use("/api/billings", billingRoutes);
     console.log("Billing routes loaded successfully");
   } catch (error) {
-    console.error("Error loading billing routes:", error.message);
+    console.error("Error loading billing routes:", error.message);  }
+
+  // Admin routes
+  try {
+    const adminRoutes = require("./routes/adminRoutes");
+    app.use("/api/admin", adminRoutes);
+    console.log("Admin routes loaded successfully");
+  } catch (error) {
+    console.error("Error loading admin routes:", error.message);
   }
 
-  // Discount routes
   // Health check routes
   try {
     const healthRoutes = require("./routes/healthRoutes");
@@ -232,6 +239,15 @@ const initializeRoutes = () => {
     console.log("Wishlist routes loaded successfully");
   } catch (error) {
     console.error("Error loading wishlist routes:", error.message);
+  }
+
+  // Debug routes (for development only)
+  try {
+    const debugRoutes = require("./routes/debugRoutes");
+    app.use("/api", debugRoutes);
+    console.log("Debug routes loaded successfully");
+  } catch (error) {
+    console.error("Error loading debug routes:", error.message);
   }
 
   // Error handling middleware

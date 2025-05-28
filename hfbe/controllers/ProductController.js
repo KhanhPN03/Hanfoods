@@ -176,6 +176,97 @@ class ProductController {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  // Admin-specific endpoints
+  async getProductStats(req, res) {
+    try {
+      const stats = await ProductService.getProductStats();
+      
+      return res.status(200).json({
+        success: true,
+        stats
+      });
+    } catch (error) {
+      console.error(`[ProductController] Error in getProductStats:`, error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+  }
+
+  async getTopProducts(req, res) {
+    try {
+      const { limit = 10, sortBy = 'sales' } = req.query;
+      const products = await ProductService.getTopProducts(limit, sortBy);
+      
+      return res.status(200).json({
+        success: true,
+        products
+      });
+    } catch (error) {
+      console.error(`[ProductController] Error in getTopProducts:`, error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+  }
+
+  async getLowStockProducts(req, res) {
+    try {
+      const { threshold = 10 } = req.query;
+      const products = await ProductService.getLowStockProducts(threshold);
+      
+      return res.status(200).json({
+        success: true,
+        products
+      });
+    } catch (error) {
+      console.error(`[ProductController] Error in getLowStockProducts:`, error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+  }
+
+  async bulkUpdateProducts(req, res) {
+    try {
+      const { productIds, updates } = req.body;
+      const result = await ProductService.bulkUpdateProducts(productIds, updates);
+      
+      return res.status(200).json({
+        success: true,
+        message: `Updated ${result.modifiedCount} products`,
+        result
+      });
+    } catch (error) {
+      console.error(`[ProductController] Error in bulkUpdateProducts:`, error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+  }
+
+  async exportProducts(req, res) {
+    try {
+      const { format = 'csv', filters = {} } = req.query;
+      const exportData = await ProductService.exportProducts(filters, format);
+      
+      res.setHeader('Content-Disposition', `attachment; filename=products.${format}`);
+      res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/json');
+      
+      return res.status(200).send(exportData);
+    } catch (error) {
+      console.error(`[ProductController] Error in exportProducts:`, error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+  }
 }
 
 module.exports = new ProductController();
