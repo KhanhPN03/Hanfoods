@@ -6,7 +6,7 @@ import CartSummary from './customerComponent/CartSummary';
 import EmptyCart from './customerComponent/EmptyCart';
 import ProductSuggestions from './customerComponent/ProductSuggestions';
  
-import './css/cartPage.css';
+import './css/cartPage.optimized.css';
 import './css/fixScrollbars.css';
 import MainFooter from '../../components/shared/MainFooter';
 import MainHeader from '../../components/shared/MainHeader';

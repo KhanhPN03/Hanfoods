@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { Eye, EyeOff, Lock, Mail, Shield } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
 import './css/AdminLogin.css';
 
 const AdminLogin = () => {
@@ -12,15 +13,14 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAppContext();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-  };
-
-  const handleSubmit = async (e) => {
+  };  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.email || !formData.password) {
@@ -29,35 +29,35 @@ const AdminLogin = () => {
     }
 
     setIsLoading(true);
-    
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      try {
+      const result = await login(formData);
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Check if user is admin
-        if (data.user.role !== 'admin') {
-          toast.error('Bạn không có quyền truy cập trang quản trị');
-          return;
-        }        // Store admin token and user info
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('adminUser', JSON.stringify(data.user));
-        
-        toast.success('Đăng nhập thành công!');
-        navigate('/admin/dashboard');
+      if (result.success) {
+        // Get user from localStorage to check role
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          // Check if user is admin
+          if (user.role !== 'admin') {
+            toast.error('Bạn không có quyền truy cập trang quản trị');
+            return;
+          }
+          
+          // Store admin-specific localStorage keys
+          const token = localStorage.getItem('token');
+          localStorage.setItem('adminToken', token);
+          localStorage.setItem('adminUser', JSON.stringify(user));
+          
+          toast.success('Đăng nhập thành công!');
+          // Redirect to admin dashboard
+          navigate('/admin/dashboard');
+        }
       } else {
-        toast.error(data.message || 'Đăng nhập thất bại');
+        toast.error(result.message || 'Email hoặc mật khẩu không đúng');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Có lỗi xảy ra trong quá trình đăng nhập');
+      console.error('Admin login error:', error);
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -149,13 +149,8 @@ const AdminLogin = () => {
           </div>
         </div>
 
-        {/* Background decoration */}
-        <div className="admin-login-bg">
-          <div className="bg-circle bg-circle-1"></div>
-          <div className="bg-circle bg-circle-2"></div>
-          <div className="bg-circle bg-circle-3"></div>
-        </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

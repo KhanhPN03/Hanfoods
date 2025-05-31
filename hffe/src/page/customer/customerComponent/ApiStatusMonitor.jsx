@@ -21,11 +21,9 @@ const ApiStatusMonitor = () => {
   const checkApiStatus = async (showNotification = false) => {
     if (apiStatus.isChecking) return;
 
-    setApiStatus(prev => ({ ...prev, isChecking: true }));
-
-    try {
+    setApiStatus(prev => ({ ...prev, isChecking: true }));    try {
       // Sử dụng endpoint health với timeout ngắn
-      await axios.get(`${API_URL}/health`, { timeout: 3000 });
+      await axios.get(`${API_URL}/api/health`, { timeout: 3000 });
       
       setApiStatus({
         isChecking: false,

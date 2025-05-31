@@ -6,12 +6,33 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
 const path = require("path");
+const helmet = require("helmet");
 
 // Load environment variables
 dotenv.config();
 
 // Initialize Express app
-const app = express();  // Middleware
+const app = express();
+
+// Security middleware - configure helmet with appropriate settings for development
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:5000"],
+      fontSrc: ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Disable for development
+}));
+
+// Middleware
 app.use(cors({
   origin: true, // Allow all origins for development
   credentials: true,
@@ -31,7 +52,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session configuration
+// Session configuration with enhanced security
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-secret-key",
@@ -40,13 +61,22 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI || "mongodb://localhost:27017/hanfoods",
     }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
+    cookie: { 
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      httpOnly: true, // Prevent XSS attacks
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'lax' // CSRF protection
+    },
+    name: 'sessionId' // Hide default session name
   })
 );
 
 // Passport initialization
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Load passport strategies
+require('./utils/authenticate');
 
 // Connect to MongoDB with enhanced error handling
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/hanfoods";

@@ -36,11 +36,21 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
-
-    // Handle 401 Unauthorized and attempt token refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const originalRequest = error.config;    // Handle 401 Unauthorized and attempt token refresh
+    // SECURITY FIX: Don't attempt token refresh for login/register endpoints
+    const isAuthEndpoint = originalRequest.url?.includes('/api/auth/login') || 
+                          originalRequest.url?.includes('/api/auth/register') ||
+                          originalRequest.url?.includes('/api/auth/refresh-token');
+    
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
+      
+      // Only attempt refresh if we have a token to refresh
+      const currentToken = localStorage.getItem('token');
+      if (!currentToken) {
+        return Promise.reject(error);
+      }
+      
       try {
         const refreshResponse = await authAPI.refreshToken();
         if (refreshResponse.data.success && refreshResponse.data.token) {
@@ -99,7 +109,7 @@ apiClient.interceptors.response.use(
 // Auth API
 export const authAPI = {
   register: (userData) =>
-    apiClient.post('/auth/register', userData).then((res) => ({
+    apiClient.post('/api/auth/register', userData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         token: res.data.token,
@@ -109,7 +119,7 @@ export const authAPI = {
     })),
 
   login: (credentials) =>
-    apiClient.post('/auth/login', credentials).then((res) => ({
+    apiClient.post('/api/auth/login', credentials).then((res) => ({
       data: {
         success: res.data.success ?? true,
         token: res.data.token,
@@ -120,18 +130,17 @@ export const authAPI = {
 
   googleLogin: () => {
     // Redirect to Google OAuth endpoint
-    window.location.href = `${API_URL}/auth/google`;
+    window.location.href = `${API_URL}/api/auth/google`;
   },
 
   logout: () =>
-    apiClient.post('/auth/logout').then((res) => ({
+    apiClient.post('/api/auth/logout').then((res) => ({
       data: {
         success: res.data.success ?? true,
         message: res.data.message || 'Logged out successfully',
       },
-    })),
-  getProfile: () =>
-    apiClient.get('/auth/current-user').then((res) => ({
+    })),  getProfile: () =>
+    apiClient.get('/api/auth/current-user').then((res) => ({
       data: {
         success: res.data.success ?? true,
         user: res.data.user,
@@ -140,7 +149,7 @@ export const authAPI = {
     })),
 
   updateProfile: (userData) =>
-    apiClient.put('/auth/profile', userData).then((res) => ({
+    apiClient.put('/api/auth/profile', userData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         user: res.data.user,
@@ -149,15 +158,14 @@ export const authAPI = {
     })),
 
   changePassword: (passwordData) =>
-    apiClient.post('/auth/change-password', passwordData).then((res) => ({
+    apiClient.post('/api/auth/change-password', passwordData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         message: res.data.message,
       },
     })),
-
   refreshToken: () =>
-    apiClient.post('/auth/refresh-token').then((res) => ({
+    apiClient.post('/api/auth/refresh-token').then((res) => ({
       data: {
         success: res.data.success ?? true,
         token: res.data.token,
@@ -170,18 +178,17 @@ export const authAPI = {
 // Product API
 export const productAPI = {
   getAllProducts: (params) =>
-    apiClient.get('/products', { params }).then((res) => ({
+    apiClient.get('/api/products', { params }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         products: res.data.products,
         message: res.data.message,
       },
     })),
-
   getProductById: (id, options = {}) => {
     console.log(`Fetching product with ID: ${id} with custom options:`, options);
     return apiClient
-      .get(`/products/${id}`, {
+      .get(`/api/products/${id}`, {
         ...options,
         timeout: 20000,
       })
@@ -193,9 +200,8 @@ export const productAPI = {
         },
       }));
   },
-
   searchProducts: (query) =>
-    apiClient.get('/products/search', { params: { query } }).then((res) => ({
+    apiClient.get('/api/products/search', { params: { query } }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         products: res.data.products,
@@ -204,7 +210,7 @@ export const productAPI = {
     })),
 
   getProductsByCategory: (categoryId) =>
-    apiClient.get(`/products/category/${categoryId}`).then((res) => ({
+    apiClient.get(`/api/products/category/${categoryId}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         products: res.data.products,
@@ -213,7 +219,7 @@ export const productAPI = {
     })),
 
   createProduct: (productData) =>
-    apiClient.post('/products', productData).then((res) => ({
+    apiClient.post('/api/products', productData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         product: res.data.product,
@@ -222,7 +228,7 @@ export const productAPI = {
     })),
 
   updateProduct: (id, productData) =>
-    apiClient.put(`/products/${id}`, productData).then((res) => ({
+    apiClient.put(`/api/products/${id}`, productData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         product: res.data.product,
@@ -231,7 +237,7 @@ export const productAPI = {
     })),
 
   deleteProduct: (id) =>
-    apiClient.delete(`/products/${id}`).then((res) => ({
+    apiClient.delete(`/api/products/${id}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         message: res.data.message,
@@ -242,7 +248,7 @@ export const productAPI = {
 // Cart API
 export const cartAPI = {
   getCart: () => 
-    apiClient.get('/carts').then(res => ({
+    apiClient.get('/api/carts').then(res => ({
       data: {
         success: true,
         cart: res.data.cart,
@@ -251,7 +257,7 @@ export const cartAPI = {
     })),
 
   addToCart: (productId, quantity) => 
-    apiClient.post('/carts/add', { productId, quantity }).then(res => ({
+    apiClient.post('/api/carts/add', { productId, quantity }).then(res => ({
       data: {
         success: true,
         cart: res.data.cart,
@@ -260,7 +266,7 @@ export const cartAPI = {
     })),
 
   updateCartItem: (productId, quantity) => 
-    apiClient.put('/carts/update', { productId, quantity }).then(res => ({
+    apiClient.put('/api/carts/update', { productId, quantity }).then(res => ({
       data: {
         success: true,
         cart: res.data.cart,
@@ -269,7 +275,7 @@ export const cartAPI = {
     })),
 
   removeFromCart: (productId) => 
-    apiClient.delete(`/carts/remove/${productId}`).then(res => ({
+    apiClient.delete(`/api/carts/remove/${productId}`).then(res => ({
       data: {
         success: true,
         cart: res.data.cart,
@@ -278,7 +284,7 @@ export const cartAPI = {
     })),
 
   clearCart: () => 
-    apiClient.delete('/carts/clear').then(res => ({
+    apiClient.delete('/api/carts/clear').then(res => ({
       data: {
         success: true,
         cart: res.data.cart,
@@ -290,7 +296,7 @@ export const cartAPI = {
 // Wishlist API
 export const wishlistAPI = {
   getWishlist: () =>
-    apiClient.get('/wishlists').then((res) => ({
+    apiClient.get('/api/wishlists').then((res) => ({
       data: {
         success: res.data.success ?? true,
         wishlist: res.data.wishlist,
@@ -299,7 +305,7 @@ export const wishlistAPI = {
     })),
 
   addToWishlist: (productId) =>
-    apiClient.post('/wishlists/add', { productId }).then((res) => ({
+    apiClient.post('/api/wishlists/add', { productId }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         wishlist: res.data.wishlist,
@@ -307,14 +313,14 @@ export const wishlistAPI = {
       },
     })),
   removeFromWishlist: (productId) =>
-    apiClient.delete(`/wishlists/remove/${productId}`).then((res) => ({
+    apiClient.delete(`/api/wishlists/remove/${productId}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         wishlist: res.data.wishlist,
         message: res.data.message,
       },
     })),  moveToCart: (productId) =>
-    apiClient.post('/wishlists/move-to-cart', { productId }).then((res) => ({
+    apiClient.post('/api/wishlists/move-to-cart', { productId }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         cart: res.data.cart,
@@ -327,7 +333,7 @@ export const wishlistAPI = {
 // Address API
 export const addressAPI = {
   getAllAddresses: () =>
-    apiClient.get('/addresses').then((res) => ({
+    apiClient.get('/api/addresses').then((res) => ({
       data: {
         success: res.data.success ?? true,
         addresses: res.data.addresses,
@@ -336,7 +342,7 @@ export const addressAPI = {
     })),
 
   getAddressById: (id) =>
-    apiClient.get(`/addresses/${id}`).then((res) => ({
+    apiClient.get(`/api/addresses/${id}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         address: res.data.address,
@@ -345,7 +351,7 @@ export const addressAPI = {
     })),
 
   createAddress: (addressData) =>
-    apiClient.post('/addresses', addressData).then((res) => ({
+    apiClient.post('/api/addresses', addressData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         address: res.data.address,
@@ -354,7 +360,7 @@ export const addressAPI = {
     })),
 
   updateAddress: (id, addressData) =>
-    apiClient.put(`/addresses/${id}`, addressData).then((res) => ({
+    apiClient.put(`/api/addresses/${id}`, addressData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         address: res.data.address,
@@ -363,7 +369,7 @@ export const addressAPI = {
     })),
 
   deleteAddress: (id) =>
-    apiClient.delete(`/addresses/${id}`).then((res) => ({
+    apiClient.delete(`/api/addresses/${id}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         message: res.data.message,
@@ -374,7 +380,7 @@ export const addressAPI = {
 // Payment API
 export const paymentAPI = {
   getAllPaymentMethods: () =>
-    apiClient.get('/payments').then((res) => ({
+    apiClient.get('/api/payments').then((res) => ({
       data: {
         success: res.data.success ?? true,
         paymentMethods: res.data.paymentMethods,
@@ -383,7 +389,7 @@ export const paymentAPI = {
     })),
 
   processCashOnDelivery: (orderId) =>
-    apiClient.post('/payments/cash-on-delivery', { orderId }).then((res) => ({
+    apiClient.post('/api/payments/cash-on-delivery', { orderId }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         payment: res.data.payment,
@@ -392,7 +398,7 @@ export const paymentAPI = {
     })),
 
   processVietQR: (orderId) =>
-    apiClient.post('/payments/vietqr', { orderId }).then((res) => ({
+    apiClient.post('/api/payments/vietqr', { orderId }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         payment: res.data.payment,
@@ -401,7 +407,7 @@ export const paymentAPI = {
     })),
 
   getPaymentByOrderId: (orderId) =>
-    apiClient.get(`/payments/order/${orderId}`).then((res) => ({
+    apiClient.get(`/api/payments/order/${orderId}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         payment: res.data.payment,
@@ -413,7 +419,7 @@ export const paymentAPI = {
 // Order API
 export const orderAPI = {
   createOrder: (orderData) =>
-    apiClient.post('/orders', orderData).then((res) => ({
+    apiClient.post('/api/orders', orderData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         order: res.data.order,
@@ -422,7 +428,7 @@ export const orderAPI = {
     })),
 
   getUserOrders: () =>
-    apiClient.get('/orders/user').then((res) => ({
+    apiClient.get('/api/orders/user').then((res) => ({
       data: {
         success: res.data.success ?? true,
         orders: res.data.orders,
@@ -431,7 +437,7 @@ export const orderAPI = {
     })),
 
   getOrderById: (id) =>
-    apiClient.get(`/orders/${id}`).then((res) => ({
+    apiClient.get(`/api/orders/${id}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         order: res.data.order,
@@ -440,7 +446,7 @@ export const orderAPI = {
     })),
 
   cancelOrder: (id) =>
-    apiClient.patch(`/orders/${id}/cancel`).then((res) => ({
+    apiClient.patch(`/api/orders/${id}/cancel`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         message: res.data.message,
@@ -448,7 +454,7 @@ export const orderAPI = {
     })),
 
   getAllOrders: (params) =>
-    apiClient.get('/orders/admin', { params }).then((res) => ({
+    apiClient.get('/api/orders/admin', { params }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         orders: res.data.orders,
@@ -457,7 +463,7 @@ export const orderAPI = {
     })),
 
   updateOrderStatus: (id, status) =>
-    apiClient.patch(`/orders/${id}/status`, { status }).then((res) => ({
+    apiClient.patch(`/api/orders/${id}/status`, { status }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         order: res.data.order,
@@ -467,7 +473,7 @@ export const orderAPI = {
 
   generateOrderReport: (startDate, endDate) =>
     apiClient
-      .get('/orders/report', { params: { startDate, endDate } })
+      .get('/api/orders/report', { params: { startDate, endDate } })
       .then((res) => ({
         data: {
           success: res.data.success ?? true,
@@ -480,7 +486,7 @@ export const orderAPI = {
 // Discount API
 export const discountAPI = {
   validateDiscount: (code, orderAmount) =>
-    apiClient.post('/discounts/validate', { code, orderAmount }).then((res) => ({
+    apiClient.post('/api/discounts/validate', { code, orderAmount }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         discount: res.data.discount,
@@ -489,7 +495,7 @@ export const discountAPI = {
     })),
 
   applyDiscount: (code, orderAmount) =>
-    apiClient.post('/discounts/apply', { code, orderAmount }).then((res) => ({
+    apiClient.post('/api/discounts/apply', { code, orderAmount }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         discount: res.data.discount,
@@ -498,7 +504,7 @@ export const discountAPI = {
     })),
 
   getAllDiscounts: () =>
-    apiClient.get('/discounts').then((res) => ({
+    apiClient.get('/api/discounts').then((res) => ({
       data: {
         success: res.data.success ?? true,
         discounts: res.data.discounts,
@@ -507,7 +513,7 @@ export const discountAPI = {
     })),
 
   createDiscount: (discountData) =>
-    apiClient.post('/discounts', discountData).then((res) => ({
+    apiClient.post('/api/discounts', discountData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         discount: res.data.discount,
@@ -516,7 +522,7 @@ export const discountAPI = {
     })),
 
   updateDiscount: (id, discountData) =>
-    apiClient.patch(`/discounts/${id}`, discountData).then((res) => ({
+    apiClient.patch(`/api/discounts/${id}`, discountData).then((res) => ({
       data: {
         success: res.data.success ?? true,
         discount: res.data.discount,
@@ -525,7 +531,7 @@ export const discountAPI = {
     })),
 
   deleteDiscount: (id) =>
-    apiClient.delete(`/discounts/${id}`).then((res) => ({
+    apiClient.delete(`/api/discounts/${id}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         message: res.data.message,
@@ -536,7 +542,7 @@ export const discountAPI = {
 // Billing API
 export const billingAPI = {
   getUserBillings: () =>
-    apiClient.get('/billings/user').then((res) => ({
+    apiClient.get('/api/billings/user').then((res) => ({
       data: {
         success: res.data.success ?? true,
         billings: res.data.billings,
@@ -545,7 +551,7 @@ export const billingAPI = {
     })),
 
   getBillingById: (id) =>
-    apiClient.get(`/billings/${id}`).then((res) => ({
+    apiClient.get(`/api/billings/${id}`).then((res) => ({
       data: {
         success: res.data.success ?? true,
         billing: res.data.billing,
@@ -554,7 +560,7 @@ export const billingAPI = {
     })),
 
   getAllBillings: (params) =>
-    apiClient.get('/billings/admin', { params }).then((res) => ({
+    apiClient.get('/api/billings/admin', { params }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         billings: res.data.billings,
@@ -563,7 +569,7 @@ export const billingAPI = {
     })),
 
   updateBillingStatus: (id, status) =>
-    apiClient.patch(`/billings/${id}/status`, { status }).then((res) => ({
+    apiClient.patch(`/api/billings/${id}/status`, { status }).then((res) => ({
       data: {
         success: res.data.success ?? true,
         billing: res.data.billing,
@@ -573,7 +579,7 @@ export const billingAPI = {
 
   generateBillingReport: (startDate, endDate) =>
     apiClient
-      .get('/billings/report', { params: { startDate, endDate } })
+      .get('/api/billings/report', { params: { startDate, endDate } })
       .then((res) => ({
         data: {
           success: res.data.success ?? true,

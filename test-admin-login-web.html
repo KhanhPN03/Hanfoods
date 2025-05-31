@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login Web Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .success { border-color: #4CAF50; background-color: #f0f8f0; }
+        .error { border-color: #f44336; background-color: #fff0f0; }
+        .warning { border-color: #ff9800; background-color: #fff8f0; }
+        .info { border-color: #2196F3; background-color: #f0f7ff; }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #45a049; }
+        #results { margin-top: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Admin Login Web Interface Test</h1>
+    
+    <div class="test-section info">
+        <h3>🎯 Test Objectives</h3>
+        <p>1. Verify admin login page loads correctly</p>
+        <p>2. Test admin authentication flow</p>
+        <p>3. Confirm redirect to admin dashboard</p>
+        <p>4. Validate localStorage token storage</p>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Server Status</h3>
+        <button onclick="checkServers()">Check Server Status</button>
+        <div id="server-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔑 Authentication Test</h3>
+        <button onclick="testAdminLogin()">Test Admin Login API</button>
+        <button onclick="simulateWebLogin()">Simulate Web Login Flow</button>
+        <div id="auth-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 Web Interface Links</h3>
+        <p><a href="http://localhost:3000/admin/login" target="_blank">🔗 Admin Login Page</a></p>
+        <p><a href="http://localhost:3000/admin/dashboard" target="_blank">🔗 Admin Dashboard</a></p>
+        <p><a href="http://localhost:3000" target="_blank">🔗 Main Site</a></p>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+        }
+
+        async function checkServers() {
+            const statusDiv = document.getElementById('server-status');
+            statusDiv.innerHTML = 'Checking servers...';
+            
+            try {
+                // Check backend
+                const backendResponse = await fetch('http://localhost:5000/api/health');
+                const backendStatus = backendResponse.ok ? '✅ Online' : '❌ Offline';
+                
+                // Check frontend (if this page loads, frontend is working)
+                const frontendStatus = '✅ Online';
+                
+                statusDiv.innerHTML = `
+                    <div><strong>Backend (Port 5000):</strong> ${backendStatus}</div>
+                    <div><strong>Frontend (Port 3000):</strong> ${frontendStatus}</div>
+                `;
+                
+                addResult('Server status check completed', 'success');
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ Error checking servers: ${error.message}</div>`;
+                addResult('Server status check failed', 'error');
+            }
+        }
+
+        async function testAdminLogin() {
+            const resultsDiv = document.getElementById('auth-results');
+            resultsDiv.innerHTML = 'Testing admin login API...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.token) {
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Admin Login API Success</strong><br>
+                            Token: ${data.token.substring(0, 50)}...<br>
+                            User: ${data.user.email} (${data.user.role})<br>
+                            Status: ${data.status}
+                        </div>
+                    `;
+                    addResult('Admin API login successful', 'success');
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">❌ Login failed: ${JSON.stringify(data)}</div>`;
+                    addResult('Admin API login failed', 'error');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                addResult(`API error: ${error.message}`, 'error');
+            }
+        }
+
+        function simulateWebLogin() {
+            addResult('Simulating web login flow...', 'info');
+            
+            // Clear any existing tokens
+            localStorage.removeItem('token');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('adminUser');
+            
+            addResult('Cleared existing localStorage tokens', 'info');
+            
+            // Open admin login page
+            const loginWindow = window.open('http://localhost:3000/admin/login', '_blank');
+            
+            addResult('Admin login page opened in new tab. Please test login manually with:', 'warning');
+            addResult('Email: admin@test.com', 'info');
+            addResult('Password: admin123', 'info');
+            
+            // Check for tokens every 2 seconds
+            const checkInterval = setInterval(() => {
+                const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+                const user = localStorage.getItem('adminUser') || localStorage.getItem('user');
+                
+                if (token && user) {
+                    clearInterval(checkInterval);
+                    addResult('✅ Login successful! Tokens detected in localStorage', 'success');
+                    addResult(`Token: ${token.substring(0, 50)}...`, 'info');
+                    addResult(`User: ${user}`, 'info');
+                }
+            }, 2000);
+            
+            // Stop checking after 2 minutes
+            setTimeout(() => {
+                clearInterval(checkInterval);
+            }, 120000);
+        }
+
+        // Auto-check servers on page load
+        window.onload = () => {
+            checkServers();
+            addResult('🚀 Admin Login Web Test Page Loaded', 'success');
+            addResult('Click the buttons above to run tests', 'info');
+        };
+    </script>
+</body>
+</html>

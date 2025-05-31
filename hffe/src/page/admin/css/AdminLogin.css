@@ -214,45 +214,6 @@
   text-decoration: underline;
 }
 
-/* Background decoration */
-.admin-login-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.bg-circle {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.bg-circle-1 {
-  width: 200px;
-  height: 200px;
-  top: -100px;
-  right: -100px;
-}
-
-.bg-circle-2 {
-  width: 150px;
-  height: 150px;
-  bottom: -75px;
-  left: -75px;
-}
-
-.bg-circle-3 {
-  width: 100px;
-  height: 100px;
-  top: 50%;
-  right: -50px;
-  transform: translateY(-50%);
-}
 
 /* Responsive */
 @media (max-width: 768px) {

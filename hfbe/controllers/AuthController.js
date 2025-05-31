@@ -63,35 +63,82 @@ class AuthController {  // Register a new user
       return res.status(400).json({ success: false, message: error.message });
     }
   }
-
   // Login user
   async login(req, res, next) {
-    // Đăng nhập sử dụng passport-local
-    passport.authenticate('local', (err, user, info) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ success: false, message: info && info.message ? info.message : 'Invalid email or password' });
-      }
-      req.logIn(user, (err) => {
-        if (err) return next(err);
-        // Tạo JWT token
-        const token = authenticate.getToken({ _id: user._id });
-        // Lưu token vào session để tránh đăng nhập lại nhiều lần
-        req.session.token = token;
-        // Chuyển user mongoose doc về object thường nếu cần
-        const userObj = user.toObject ? user.toObject() : user;
-        // Loại bỏ các trường nhạy cảm
-        const { isDeleted, salt, hash, createdAt, updatedAt, ...rest } = userObj;
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json({
-          success: true,
-          token: token,
-          user: rest,
-          status: "You are successfully logged in!",
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Email and password are required' 
         });
+      }
+        // Find user by email
+      const Account = require('../models/Account');
+      const user = await Account.findOne({ email: email });
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Invalid email or password' 
+        });
+      }
+      
+      // Verify password using passport-local-mongoose method
+      try {
+        const isValidPassword = await new Promise((resolve) => {
+          // Set a timeout to prevent hanging
+          const timeout = setTimeout(() => {
+            resolve(false);
+          }, 5000); // 5 second timeout
+          
+          user.authenticate(password, (err, authenticatedUser, info) => {
+            clearTimeout(timeout);
+            if (err) {
+              console.error('Authentication error:', err);
+              resolve(false);
+            } else {
+              resolve(!!authenticatedUser);
+            }
+          });
+        });
+        
+        if (!isValidPassword) {
+          return res.status(401).json({ 
+            success: false, 
+            message: 'Invalid email or password' 
+          });
+        }
+      } catch (authError) {
+        console.error('Password verification failed:', authError);
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Invalid email or password' 
+        });
+      }
+      
+      // Generate JWT token
+      const token = authenticate.getToken({ _id: user._id });
+      
+      // Convert user to plain object and remove sensitive fields
+      const userObj = user.toObject();
+      const { salt, hash, createdAt, updatedAt, ...rest } = userObj;
+      
+      res.json({
+        success: true,
+        token: token,
+        user: rest,
+        status: "You are successfully logged in!",
       });
-    })(req, res, next);
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Internal server error' 
+      });
+    }
   }
 
   // Google OAuth login
