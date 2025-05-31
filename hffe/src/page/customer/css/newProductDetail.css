@@ -69,7 +69,8 @@
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
   padding: 2.5rem 2rem 2rem 2rem;
-  margin-bottom: 2rem;
+  margin-top: 80px;
+  margin-bottom: 16px;
   width: 100%;
   margin-left: auto;
   margin-right: auto;
@@ -115,20 +116,20 @@
 /* Product Detail Top Background */
 .product-detail-top-bg {
   background-color: var(--color-bg-light);
-  padding: 2rem 0;
+  padding: 1rem 0;
   width: 100%;
   display: flex;
   justify-content: center; /* Đảm bảo nội dung căn giữa */
   background: var(--color-bg-light);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   max-width: 1080px;
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
-  padding-left: 2rem;
-  padding-right: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 @media (max-width: 992px) {

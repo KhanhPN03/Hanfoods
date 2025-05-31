@@ -66,6 +66,7 @@ const CartPage = () => {
 
   // Calculate final total
   const total = subtotal + shipping - discount;
+
   return (
     <div className="cart-page">
       <MainHeader />

@@ -91,10 +91,9 @@ const AdminLayout = () => {
     
     return pathMap[location.pathname] || 'Admin Panel';
   };
-
   const handleLogout = () => {
     localStorage.removeItem('adminUser');
-    localStorage.removeItem('token');
+    localStorage.removeItem('adminToken');
     navigate('/admin/login');
   };
 

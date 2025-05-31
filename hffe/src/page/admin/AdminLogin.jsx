@@ -46,11 +46,9 @@ const AdminLogin = () => {
         if (data.user.role !== 'admin') {
           toast.error('Bạn không có quyền truy cập trang quản trị');
           return;
-        }
-
-        // Store admin token and user info
+        }        // Store admin token and user info
         localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('adminUser', JSON.stringify(data.user));
         
         toast.success('Đăng nhập thành công!');
         navigate('/admin/dashboard');

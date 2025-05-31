@@ -40,7 +40,6 @@ body {
 }
 
 .cart-main {
-  flex: 1;
   overflow-y: visible;
   padding-bottom: 2rem;
   margin-top: 80px;

@@ -3,6 +3,8 @@ import { useAppContext } from '../../../context/AppContext';
 import '../css/CartItemLoading.css';
 
 const CartItem = ({ item }) => {
+  console.log(item);
+  
   const { updateCartItemQuantity, removeFromCart, user, addNotification } = useAppContext();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);

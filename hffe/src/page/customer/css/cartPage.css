@@ -232,7 +232,8 @@
 .cart-item {
   display: grid;
   grid-template-columns: 2.5fr 1fr 1.5fr 1fr;
-  padding: 1.5rem 0;  border-bottom: 1px solid var(--color-bg-cream);
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--color-bg-cream);
   align-items: center;
 }
 
@@ -965,71 +966,147 @@
     text-align: center;
   }
 }
-
-/* Additional cart page layout improvements */
+/* Cart Page Styles */
 .cart-page {
   position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  background-color: var(--color-bg-light); /* Ensure consistent background */
 }
 
+/* Main Header Adjustment (if fixed) */
+.MainHeader {
+  position: sticky; /* Assuming MainHeader is sticky/fixed */
+  top: 0;
+  z-index: 100;
+}
+
+/* Main Content */
 .cart-main {
-  flex: 1;
-  padding: 2rem 1rem;
+  flex: 1 0 auto; /* Allow growth and ensure it doesn’t shrink too much */
+  padding: 4rem 1rem 2rem; /* Increased top padding to clear MainHeader (adjust based on header height) */
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: visible;
+  background-color: var(--color-bg-light);
+  overflow: visible; /* Ensure content isn’t clipped */
 }
 
-/* Better footer spacing and positioning */
-.footerSection {
-  margin-top: auto;
-  padding-top: 2rem;
-  position: relative;
-  z-index: 10;
+/* Ensure cart-content maintains side-by-side layout */
+.cart-content {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  min-height: 0; /* Prevent flex issues with height */
 }
 
-/* Improved responsive layout for cart content */
+.cart-content .cart-items-list {
+  flex: 2 1 0%;
+  min-width: 0;
+}
+
+.cart-content .cart-summary {
+  flex: 1 1 0%;
+  min-width: 280px;
+  max-width: 400px;
+}
+
+/* Related Products Section */
+.related-products-section {
+  padding: 3rem 1rem;
+  background-color: var(--color-bg-light);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  position: relative; /* Ensure in document flow */
+  z-index: 1; /* Lower than MainHeader but above cart-main content */
+}
+
+.related-products-section .container {
+  width: 100%;
+  padding: 0;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.related-products-wrapper {
+  width: 100%;
+}
+
+/* Product Grid for Suggestions */
+.productGrid.relatedProductGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+/* Responsive Adjustments */
 @media (max-width: 992px) {
+  .cart-main {
+    padding: 2rem 1rem; /* Reduce padding on smaller screens */
+  }
+
   .cart-content {
-    display: flex;
     flex-direction: column;
+    gap: 1.5rem;
   }
-  
-  .cart-items {
-    margin-bottom: 2rem;
-  }
-  
+
+  .cart-items-list,
   .cart-summary {
-    width: 100%;
+    max-width: 100%;
+  }
+
+  .cart-summary {
     position: relative;
     top: 0;
+    width: 100%;
+  }
+
+  .related-products-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .productGrid.relatedProductGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
 }
 
-/* Make sure form elements don't overflow on small screens */
+@media (max-width: 576px) {
+  .cart-main,
+  .related-products-section {
+    padding: 1rem 0.75rem;
+  }
+
+  .cart-title,
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .productGrid.relatedProductGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
-  .cart-header {
-    padding: 1rem;
+  .cart-main {
+    padding: 1rem 0.5rem;
   }
-  
-  .quantity-selector {
-    max-width: 100px;
+
+  .cart-content {
+    gap: 1rem;
   }
-  
-  .coupon-section form {
-    flex-direction: column;
-  }
-  
-  .coupon-input,
-  .apply-coupon {
-    width: 100%;
-    border-radius: var(--border-radius-sm);
-  }
-  
-  .coupon-input {
-    margin-bottom: 0.5rem;
+
+  .related-products-section {
+    padding: 1rem 0.5rem;
   }
 }

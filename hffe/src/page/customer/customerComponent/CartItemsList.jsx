@@ -15,11 +15,9 @@ const CartItemsList = ({ cartItems }) => {
       </div>
       
       {cartItems.length > 0 ? (
-        <>
-          {cartItems.map(item => (
-            <CartItem key={item.id} item={item} />
-          ))}
-        </>
+        cartItems.map(item => (
+          <CartItem key={item.id} item={item} />
+        ))
       ) : (
         <div className="empty-cart-message">
           Chưa có sản phẩm nào trong giỏ hàng
