@@ -2,13 +2,13 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 import AdminLogin from './AdminLogin';
-import Dashboard from './pages/Dashboard';
-import ProductManagement from './pages/ProductManagement';
-import AccountManagement from './pages/AccountManagement';
+import ImprovedDashboard from './pages/ImprovedDashboard';
+import ImprovedProductManagement from './pages/ImprovedProductManagement';
+import ImprovedAccountManagement from './pages/ImprovedAccountManagement';
 import DiscountManagement from './pages/DiscountManagement';
 import OrderManagement from './pages/OrderManagement';
 import RevenueManagement from './pages/RevenueManagement';
-import SettingsManagement from './pages/SettingsManagement';
+import ImprovedSettingsManagement from './pages/ImprovedSettingsManagement';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -29,29 +29,25 @@ const AdminRoutes = () => {
       {/* Admin login route - không cần protected */}
       <Route path="/login" element={<AdminLogin />} />
       
-      {/* Protected admin routes */}
+      {/* Protected admin routes with AdminLayout */}
       <Route path="/*" element={
         <ProtectedRoute>
-          <AdminLayout>
-            <Routes>
-              {/* Default route - redirect to dashboard */}
-              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-              
-              {/* Admin Dashboard Routes */}
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/products" element={<ProductManagement />} />
-              <Route path="/accounts" element={<AccountManagement />} />
-              <Route path="/discounts" element={<DiscountManagement />} />
-              <Route path="/orders" element={<OrderManagement />} />
-              <Route path="/revenue" element={<RevenueManagement />} />
-              <Route path="/settings" element={<SettingsManagement />} />
-              
-              {/* Catch all route - redirect to dashboard */}
-              <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-            </Routes>
-          </AdminLayout>
+          <AdminLayout />
         </ProtectedRoute>
-      } />
+      }>
+        {/* Default route - redirect to dashboard */}
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />        {/* Admin Dashboard Routes */}
+        <Route path="dashboard" element={<ImprovedDashboard />} />
+        <Route path="products" element={<ImprovedProductManagement />} />
+        <Route path="accounts" element={<ImprovedAccountManagement />} />
+        <Route path="discounts" element={<DiscountManagement />} />
+        <Route path="orders" element={<OrderManagement />} />
+        <Route path="revenue" element={<RevenueManagement />} />
+        <Route path="settings" element={<ImprovedSettingsManagement />} />
+        
+        {/* Catch all route - redirect to dashboard */}
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+      </Route>
     </Routes>
   );
 };
