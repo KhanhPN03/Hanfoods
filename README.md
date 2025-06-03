@@ -4,7 +4,6 @@
 
 ![Han Foods](https://img.shields.io/badge/Han%20Foods-E--commerce%20Platform-orange?style=for-the-badge)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
 **A complete, modern e-commerce solution with comprehensive admin dashboard**
 
@@ -380,12 +379,6 @@ We welcome contributions! Please follow these steps:
 
 ---
 
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
 ## 🙏 Acknowledgments
 
 - Thanks to all the open-source libraries that made this project possible
@@ -401,5 +394,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Made with ❤️ by Phạm Nam Khánh
 
 </div>
-
-This project is licensed under the MIT License.
