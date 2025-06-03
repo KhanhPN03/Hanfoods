@@ -1,0 +1,147 @@
+Starting comprehensive validation of CocoNature E-commerce API...
+Connected to MongoDB database: hanfoods
+
+Validating application architecture...
+✅ All essential files exist
+✅ All required dependencies are installed
+✅ All key middleware properly configured in app.js
+
+Validating service layer...
+Found 9 service files
+❌ Missing required services:
+   - CategoryService
+✅ All controllers properly utilize service layer
+
+Validating API routes and controllers...
+Found 10 route files
+
+Checking routes in addressRoutes.js...
+Found 6 routes in this file
+✅ All required routes found in addressRoutes.js
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\AddressController.js
+
+Checking routes in authRoutes.js...
+Found 8 routes in this file
+❌ Missing 2 required routes in authRoutes.js:
+   - GET /logout
+   - GET /profile
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\AuthController.js
+
+Checking routes in billingRoutes.js...
+Found 6 routes in this file
+❌ Missing 1 required routes in billingRoutes.js:
+   - GET /
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\BillingController.js
+
+Checking routes in cartRoutes.js...
+Found 5 routes in this file
+❌ Missing 3 required routes in cartRoutes.js:
+   - POST /
+   - PUT /:productId
+   - DELETE /:productId
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\CartController.js
+
+Checking routes in discountRoutes.js...
+Found 7 routes in this file
+❌ Missing 1 required routes in discountRoutes.js:
+   - PUT /:id (admin route)
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\DiscountController.js
+
+Checking routes in healthRoutes.js...
+Found 2 routes in this file
+❌ Could not find controller import in healthRoutes.js
+
+Checking routes in orderRoutes.js...
+Found 7 routes in this file
+❌ Missing 2 required routes in orderRoutes.js:
+   - GET /
+   - PUT /:id/status (admin route)
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\OrderController.js
+
+Checking routes in paymentRoutes.js...
+Found 7 routes in this file
+❌ Missing 2 required routes in paymentRoutes.js:
+   - POST /process
+   - GET /methods
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\PaymentController.js
+
+Checking routes in productRoutes.js...
+Found 6 routes in this file
+❌ Missing 1 required routes in productRoutes.js:
+   - GET /category/:categoryId
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\ProductController.js
+
+Checking routes in wishlistRoutes.js...
+Found 5 routes in this file
+❌ Missing 2 required routes in wishlistRoutes.js:
+   - POST /
+   - DELETE /:productId
+❌ Controller file not found: D:\Hang_ngoo\web\controllers\WishlistController.js
+
+Route coverage: 22/40 (55.0%)
+
+❌ Some routes are missing or have issues.
+
+Validating database relationships...
+
+1. VALIDATING USER RELATIONSHIPS:
+Found 1 admin users and 2 customer users
+✅ Admin users exist in the system
+✅ Customer users exist in the system
+
+2. VALIDATING CART RELATIONSHIPS:
+✅ Customer nguyen.khachhang@example.com has a cart
+   Cart has 2 items
+✅ All cart items for nguyen.khachhang@example.com reference valid products
+✅ Customer tran.khachhang@example.com has a cart
+   Cart has 2 items
+✅ All cart items for tran.khachhang@example.com reference valid products
+
+3. VALIDATING WISHLIST RELATIONSHIPS:
+✅ Customer nguyen.khachhang@example.com has 1 wishlist items
+❌ Wishlist contains invalid product reference: undefined
+✅ Customer tran.khachhang@example.com has 1 wishlist items
+❌ Wishlist contains invalid product reference: undefined
+
+4. VALIDATING ADDRESS RELATIONSHIPS:
+✅ Customer nguyen.khachhang@example.com has 2 addresses
+✅ Customer nguyen.khachhang@example.com has a default address
+✅ Customer tran.khachhang@example.com has 2 addresses
+✅ Customer tran.khachhang@example.com has a default address
+
+5. VALIDATING ORDER RELATIONSHIPS:
+Found 4 orders in the system
+✅ Order ORD-1747898774807-85CE has valid items
+✅ Order ORD-1747898774807-85CE has a billing record
+✅ Order ORD-1747898774807-85CE has a valid discount applied
+✅ Order ORD-1747898774821-B25B has valid items
+✅ Order ORD-1747898774821-B25B has a billing record
+✅ Order ORD-1747898774832-7D3E has valid items
+✅ Order ORD-1747898774832-7D3E has a billing record
+✅ Order ORD-1747898774832-7D3E has a valid discount applied
+✅ Order ORD-1747898774844-5CE4 has valid items
+✅ Order ORD-1747898774844-5CE4 has a billing record
+
+6. VALIDATING PRODUCT RELATIONSHIPS:
+Found 6 products in the system
+✅ All products have valid categories
+Found 7 product reviews
+✅ All reviews have valid product and user references
+
+7. VALIDATING PAYMENT METHODS:
+✅ Found 3 payment methods in the system
+
+8. VALIDATING DISCOUNTS:
+✅ Found 2 discount codes in the system
+
+✅ Database relationship validation complete!
+
+=== VALIDATION SUMMARY ===
+Application Architecture: ✅ PASSED
+Service Layer: ❌ FAILED
+API Routes: ❌ FAILED
+Database Relationships: ✅ PASSED
+
+❌ Some validations failed. Please address the issues reported above.
+
+Disconnected from MongoDB

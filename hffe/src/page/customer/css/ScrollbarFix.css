@@ -1,0 +1,66 @@
+/* ScrollbarFix.css */
+/* Global solution for double scrollbar issues */
+
+/* Reset base elements */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+html {
+  overflow-y: scroll; /* Make sure there's always a scrollbar to prevent layout jumps */
+}
+
+body {
+  overflow-y: visible; /* Let the content determine scrolling */
+}
+
+/* Fix for excessive height causing double scrollbar */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Use min-height instead of height:100% */
+}
+
+/* Fix any overflow issues on container */
+.landingPageContainer {
+  flex: 1;
+  position: relative;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fix for mobile menu scroll issues */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-accent);
+  border-radius: 10px;
+}
+
+/* Fix for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .landingPageContainer {
+    /* iOS-specific overrides to prevent bouncing scroll */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

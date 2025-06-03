@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Admin Login Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+        }
+        input { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button { 
+            background: #007bff; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover { 
+            background: #0056b3; 
+        }
+        button.test-btn {
+            background: #28a745;
+        }
+        button.test-btn:hover {
+            background: #218838;
+        }
+        .result { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-radius: 4px; 
+            white-space: pre-wrap;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .info {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #99d6ff;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .links {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .links a {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .links a:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Complete Admin Login Test Suite</h1>
+        <p>This comprehensive test validates the complete admin authentication flow</p>
+        
+        <!-- Status Panel -->
+        <div id="statusPanel" class="status info">
+            Ready to test admin authentication...
+        </div>
+        
+        <!-- Test 1: Valid Admin Login -->
+        <div class="test-section">
+            <h3>✅ Test 1: Valid Admin Login</h3>
+            <p>Tests login with correct admin credentials</p>
+            <form id="validLoginForm">
+                <div class="form-group">
+                    <label for="validEmail">Admin Email:</label>
+                    <input type="email" id="validEmail" value="admin@test.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="validPassword">Password:</label>
+                    <input type="password" id="validPassword" value="admin123" required>
+                </div>
+                <button type="submit" class="test-btn">Test Valid Login</button>
+            </form>
+            <div id="validResult"></div>
+        </div>
+
+        <!-- Test 2: Invalid Credentials -->
+        <div class="test-section">
+            <h3>❌ Test 2: Invalid Credentials</h3>
+            <p>Tests login with wrong password</p>
+            <form id="invalidLoginForm">
+                <div class="form-group">
+                    <label for="invalidEmail">Email:</label>
+                    <input type="email" id="invalidEmail" value="admin@test.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="invalidPassword">Wrong Password:</label>
+                    <input type="password" id="invalidPassword" value="wrongpassword" required>
+                </div>
+                <button type="submit" class="test-btn">Test Invalid Login</button>
+            </form>
+            <div id="invalidResult"></div>
+        </div>
+
+        <!-- Test 3: Non-existent Account -->
+        <div class="test-section">
+            <h3>❓ Test 3: Non-existent Account</h3>
+            <p>Tests login with non-existent email</p>
+            <form id="nonexistentForm">
+                <div class="form-group">
+                    <label for="nonexistentEmail">Non-existent Email:</label>
+                    <input type="email" id="nonexistentEmail" value="nonexistent@test.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="nonexistentPassword">Password:</label>
+                    <input type="password" id="nonexistentPassword" value="anypassword" required>
+                </div>
+                <button type="submit" class="test-btn">Test Non-existent Account</button>
+            </form>
+            <div id="nonexistentResult"></div>
+        </div>
+
+        <!-- Test 4: Admin Dashboard Access -->
+        <div class="test-section">
+            <h3>🏠 Test 4: Admin Dashboard Access</h3>
+            <p>Tests access to admin protected routes</p>
+            <button type="button" class="test-btn" onclick="testAdminDashboard()">Test Dashboard Access</button>
+            <div id="dashboardResult"></div>
+        </div>
+
+        <!-- Run All Tests -->
+        <div class="test-section">
+            <h3>🚀 Run All Tests</h3>
+            <button type="button" class="test-btn" onclick="runAllTests()">Run Complete Test Suite</button>
+            <div id="allTestsResult"></div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="links">
+            <h4>Quick Links:</h4>
+            <a href="http://localhost:3000/admin/login" target="_blank">Admin Login Page</a>
+            <a href="http://localhost:3000/admin/dashboard" target="_blank">Admin Dashboard</a>
+            <a href="http://localhost:3000" target="_blank">Customer Site</a>
+            <a href="#" onclick="clearLocalStorage()">Clear localStorage</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        function updateStatus(message, type = 'info') {
+            const statusPanel = document.getElementById('statusPanel');
+            statusPanel.textContent = message;
+            statusPanel.className = `status ${type}`;
+        }
+
+        function showResult(elementId, content, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${type}">${content}</div>`;
+        }
+
+        // Test 1: Valid Admin Login
+        document.getElementById('validLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            updateStatus('Testing valid admin login...', 'info');
+            
+            const email = document.getElementById('validEmail').value;
+            const password = document.getElementById('validPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.user.role === 'admin') {
+                    showResult('validResult', `✅ SUCCESS!
+User: ${data.user.firstname} ${data.user.lastname}
+Role: ${data.user.role}
+Token: ${data.token ? 'Received' : 'Missing'}
+Length: ${data.token?.length || 0} characters`, 'success');
+                    updateStatus('Valid admin login test passed!', 'success');
+                    
+                    // Store tokens for dashboard test
+                    localStorage.setItem('testAdminToken', data.token);
+                    localStorage.setItem('testAdminUser', JSON.stringify(data.user));
+                } else {
+                    showResult('validResult', `❌ FAILED: ${data.message || 'Login failed'}`, 'error');
+                    updateStatus('Valid admin login test failed!', 'error');
+                }
+            } catch (error) {
+                showResult('validResult', `❌ ERROR: ${error.message}`, 'error');
+                updateStatus('Valid admin login test error!', 'error');
+            }
+        });
+
+        // Test 2: Invalid Credentials
+        document.getElementById('invalidLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            updateStatus('Testing invalid credentials...', 'info');
+            
+            const email = document.getElementById('invalidEmail').value;
+            const password = document.getElementById('invalidPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    showResult('invalidResult', `✅ CORRECTLY REJECTED!
+Message: ${data.message}
+Status: ${response.status}`, 'success');
+                    updateStatus('Invalid credentials test passed!', 'success');
+                } else {
+                    showResult('invalidResult', `❌ SECURITY ISSUE: Invalid credentials were accepted!`, 'error');
+                    updateStatus('Invalid credentials test failed!', 'error');
+                }
+            } catch (error) {
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    showResult('invalidResult', `✅ CORRECTLY REJECTED: ${error.message}`, 'success');
+                    updateStatus('Invalid credentials test passed!', 'success');
+                } else {
+                    showResult('invalidResult', `❌ ERROR: ${error.message}`, 'error');
+                    updateStatus('Invalid credentials test error!', 'error');
+                }
+            }
+        });
+
+        // Test 3: Non-existent Account
+        document.getElementById('nonexistentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            updateStatus('Testing non-existent account...', 'info');
+            
+            const email = document.getElementById('nonexistentEmail').value;
+            const password = document.getElementById('nonexistentPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    showResult('nonexistentResult', `✅ CORRECTLY REJECTED!
+Message: ${data.message}
+Status: ${response.status}`, 'success');
+                    updateStatus('Non-existent account test passed!', 'success');
+                } else {
+                    showResult('nonexistentResult', `❌ SECURITY ISSUE: Non-existent account was accepted!`, 'error');
+                    updateStatus('Non-existent account test failed!', 'error');
+                }
+            } catch (error) {
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    showResult('nonexistentResult', `✅ CORRECTLY REJECTED: ${error.message}`, 'success');
+                    updateStatus('Non-existent account test passed!', 'success');
+                } else {
+                    showResult('nonexistentResult', `❌ ERROR: ${error.message}`, 'error');
+                    updateStatus('Non-existent account test error!', 'error');
+                }
+            }
+        });
+
+        // Test 4: Admin Dashboard Access
+        async function testAdminDashboard() {
+            updateStatus('Testing admin dashboard access...', 'info');
+            
+            const token = localStorage.getItem('testAdminToken');
+            if (!token) {
+                showResult('dashboardResult', `❌ No admin token found. Please run valid login test first.`, 'error');
+                updateStatus('Dashboard test requires valid login first!', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/dashboard-stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('dashboardResult', `✅ DASHBOARD ACCESS SUCCESS!
+Status: ${response.status}
+Data received: ${JSON.stringify(data, null, 2)}`, 'success');
+                    updateStatus('Dashboard access test passed!', 'success');
+                } else {
+                    showResult('dashboardResult', `❌ DASHBOARD ACCESS DENIED
+Status: ${response.status}
+Response: ${await response.text()}`, 'error');
+                    updateStatus('Dashboard access test failed!', 'error');
+                }
+            } catch (error) {
+                showResult('dashboardResult', `❌ DASHBOARD ERROR: ${error.message}`, 'error');
+                updateStatus('Dashboard access test error!', 'error');
+            }
+        }
+
+        // Run All Tests
+        async function runAllTests() {
+            updateStatus('Running complete test suite...', 'info');
+            showResult('allTestsResult', 'Running all tests, please wait...', 'info');
+            
+            // Clear previous results
+            ['validResult', 'invalidResult', 'nonexistentResult', 'dashboardResult'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            
+            // Run tests sequentially
+            await new Promise(resolve => {
+                document.getElementById('validLoginForm').dispatchEvent(new Event('submit'));
+                setTimeout(resolve, 1000);
+            });
+            
+            await new Promise(resolve => {
+                document.getElementById('invalidLoginForm').dispatchEvent(new Event('submit'));
+                setTimeout(resolve, 1000);
+            });
+            
+            await new Promise(resolve => {
+                document.getElementById('nonexistentForm').dispatchEvent(new Event('submit'));
+                setTimeout(resolve, 1000);
+            });
+            
+            await new Promise(resolve => {
+                testAdminDashboard();
+                setTimeout(resolve, 1000);
+            });
+            
+            showResult('allTestsResult', `✅ All tests completed! Check individual results above.`, 'success');
+            updateStatus('Complete test suite finished!', 'success');
+        }
+
+        function clearLocalStorage() {
+            localStorage.clear();
+            updateStatus('localStorage cleared!', 'warning');
+            showResult('allTestsResult', 'localStorage has been cleared. All stored tokens removed.', 'warning');
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            updateStatus('Admin login test suite loaded. Ready to begin testing.', 'success');
+        });
+    </script>
+</body>
+</html>

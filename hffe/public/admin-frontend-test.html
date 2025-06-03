@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Frontend Login Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        .test-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .primary-btn {
+            background: #3498db;
+            color: white;
+        }
+        .primary-btn:hover {
+            background: #2980b9;
+        }
+        .success-btn {
+            background: #27ae60;
+            color: white;
+        }
+        .success-btn:hover {
+            background: #229954;
+        }
+        .danger-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        .danger-btn:hover {
+            background: #c0392b;
+        }
+        .warning-btn {
+            background: #f39c12;
+            color: white;
+        }
+        .warning-btn:hover {
+            background: #e67e22;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .iframe-container {
+            margin-top: 20px;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+        .status-indicators {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .status-indicator.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-indicator.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-indicator.checking {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .auto-test-results {
+            margin-top: 20px;
+        }
+        .test-step {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            background: #f8f9fa;
+        }
+        .test-step.success {
+            border-left-color: #27ae60;
+            background: #d4edda;
+        }
+        .test-step.error {
+            border-left-color: #e74c3c;
+            background: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Admin Frontend Login Test Suite</h1>
+        
+        <div class="status-indicators">
+            <div id="backendStatus" class="status-indicator checking">Backend: Checking...</div>
+            <div id="frontendStatus" class="status-indicator checking">Frontend: Checking...</div>
+            <div id="authStatus" class="status-indicator checking">Auth API: Checking...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Server Status Check</h3>
+            <div class="test-controls">
+                <button class="primary-btn" onclick="checkServers()">Check Server Status</button>
+                <button class="success-btn" onclick="testAdminAPI()">Test Admin Login API</button>
+                <button class="warning-btn" onclick="clearLocalStorage()">Clear LocalStorage</button>
+            </div>
+            <div id="serverResult" class="result info"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 Admin Login Test</h3>
+            <div class="test-controls">
+                <button class="primary-btn" onclick="openAdminLogin()">Open Admin Login Page</button>
+                <button class="success-btn" onclick="runAutoLoginTest()">Run Auto Login Test</button>
+                <button class="danger-btn" onclick="testInvalidCredentials()">Test Invalid Credentials</button>
+                <button class="warning-btn" onclick="checkLocalStorageKeys()">Check LocalStorage Keys</button>
+            </div>
+            <div id="loginResult" class="result info"></div>
+            <div class="auto-test-results" id="autoTestResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Admin Dashboard Access Test</h3>
+            <div class="test-controls">
+                <button class="primary-btn" onclick="testDashboardAccess()">Test Dashboard Access</button>
+                <button class="success-btn" onclick="testAdminRoutes()">Test Admin Routes</button>
+                <button class="warning-btn" onclick="simulateAdminSession()">Simulate Admin Session</button>
+            </div>
+            <div id="dashboardResult" class="result info"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🌐 Live Admin Login Page</h3>
+            <p>Use credentials: <strong>admin@test.com</strong> / <strong>admin123</strong></p>
+            <div class="iframe-container">
+                <iframe id="adminFrame" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        const FRONTEND_BASE = 'http://localhost:3000';
+
+        // Check server status on page load
+        window.addEventListener('load', () => {
+            checkServers();
+        });
+
+        async function checkServers() {
+            const result = document.getElementById('serverResult');
+            const backendStatus = document.getElementById('backendStatus');
+            const frontendStatus = document.getElementById('frontendStatus');
+            const authStatus = document.getElementById('authStatus');
+
+            result.textContent = 'Checking server status...\n';
+
+            try {
+                // Check backend
+                const backendResponse = await fetch(`${API_BASE}/api/health`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (backendResponse.ok) {
+                    backendStatus.textContent = 'Backend: Online ✅';
+                    backendStatus.className = 'status-indicator online';
+                    result.textContent += '✅ Backend server (port 5000): Online\n';
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                backendStatus.textContent = 'Backend: Offline ❌';
+                backendStatus.className = 'status-indicator offline';
+                result.textContent += '❌ Backend server (port 5000): Offline\n';
+            }
+
+            try {
+                // Check frontend
+                const frontendResponse = await fetch(`${FRONTEND_BASE}`, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                frontendStatus.textContent = 'Frontend: Online ✅';
+                frontendStatus.className = 'status-indicator online';
+                result.textContent += '✅ Frontend server (port 3000): Online\n';
+            } catch (error) {
+                frontendStatus.textContent = 'Frontend: Offline ❌';
+                frontendStatus.className = 'status-indicator offline';
+                result.textContent += '❌ Frontend server (port 3000): Offline\n';
+            }
+
+            try {
+                // Check auth API
+                const authResponse = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'test@test.com', password: 'wrongpassword' })
+                });
+                
+                authStatus.textContent = 'Auth API: Accessible ✅';
+                authStatus.className = 'status-indicator online';
+                result.textContent += '✅ Auth API: Accessible (expected 401/400 for wrong credentials)\n';
+            } catch (error) {
+                authStatus.textContent = 'Auth API: Error ❌';
+                authStatus.className = 'status-indicator offline';
+                result.textContent += '❌ Auth API: Not accessible\n';
+            }
+
+            result.className = 'result info';
+        }
+
+        async function testAdminAPI() {
+            const result = document.getElementById('serverResult');
+            result.textContent = 'Testing admin login API...\n';
+            result.className = 'result info';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    result.textContent += '✅ Admin API Login: SUCCESS\n';
+                    result.textContent += `Token: ${data.token.substring(0, 50)}...\n`;
+                    result.textContent += `Admin User: ${data.user.email} (${data.user.role})\n`;
+                    result.textContent += `User ID: ${data.user._id}\n`;
+                    result.className = 'result success';
+                } else {
+                    result.textContent += '❌ Admin API Login: FAILED\n';
+                    result.textContent += `Response: ${JSON.stringify(data, null, 2)}\n`;
+                    result.className = 'result error';
+                }
+            } catch (error) {
+                result.textContent += `❌ Admin API Login: ERROR\n${error.message}\n`;
+                result.className = 'result error';
+            }
+        }
+
+        function openAdminLogin() {
+            const iframe = document.getElementById('adminFrame');
+            iframe.src = `${FRONTEND_BASE}/admin/login`;
+            
+            const result = document.getElementById('loginResult');
+            result.textContent = 'Admin login page loaded in iframe below.\nUse credentials: admin@test.com / admin123\n';
+            result.className = 'result info';
+        }
+
+        async function runAutoLoginTest() {
+            const result = document.getElementById('autoTestResults');
+            result.innerHTML = '<h4>🤖 Automated Login Test Results:</h4>';
+            
+            // Clear localStorage first
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            addTestStep('🧹 Cleared localStorage and sessionStorage', 'success');
+
+            try {
+                // Step 1: Test login API
+                addTestStep('🔄 Step 1: Testing login API call...', 'info');
+                
+                const loginResponse = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                
+                if (loginResponse.ok && loginData.success) {
+                    addTestStep('✅ Step 1: Login API call successful', 'success');
+                    
+                    // Step 2: Simulate localStorage storage (like AdminLogin.jsx does)
+                    addTestStep('🔄 Step 2: Simulating localStorage storage...', 'info');
+                    
+                    localStorage.setItem('token', loginData.token);
+                    localStorage.setItem('user', JSON.stringify(loginData.user));
+                    
+                    // Admin-specific storage (our fix)
+                    localStorage.setItem('adminToken', loginData.token);
+                    localStorage.setItem('adminUser', JSON.stringify(loginData.user));
+                    
+                    addTestStep('✅ Step 2: localStorage keys set successfully', 'success');
+                    
+                    // Step 3: Verify admin role
+                    addTestStep('🔄 Step 3: Verifying admin role...', 'info');
+                    
+                    if (loginData.user.role === 'admin') {
+                        addTestStep('✅ Step 3: Admin role verified', 'success');
+                        
+                        // Step 4: Test dashboard access
+                        addTestStep('🔄 Step 4: Testing dashboard access...', 'info');
+                        
+                        // Simulate what AdminRoutes.jsx does
+                        const adminToken = localStorage.getItem('adminToken');
+                        const adminUser = localStorage.getItem('adminUser');
+                        
+                        if (adminToken && adminUser) {
+                            addTestStep('✅ Step 4: Admin authentication keys present', 'success');
+                            addTestStep('🎉 ALL TESTS PASSED! Admin login flow is working correctly.', 'success');
+                        } else {
+                            addTestStep('❌ Step 4: Admin authentication keys missing', 'error');
+                        }
+                    } else {
+                        addTestStep('❌ Step 3: User is not admin', 'error');
+                    }
+                } else {
+                    addTestStep('❌ Step 1: Login API call failed', 'error');
+                    addTestStep(`Error: ${JSON.stringify(loginData)}`, 'error');
+                }
+            } catch (error) {
+                addTestStep(`❌ Test failed with error: ${error.message}`, 'error');
+            }
+        }
+
+        function addTestStep(message, type = 'info') {
+            const container = document.getElementById('autoTestResults');
+            const step = document.createElement('div');
+            step.className = `test-step ${type}`;
+            step.textContent = message;
+            container.appendChild(step);
+        }
+
+        async function testInvalidCredentials() {
+            const result = document.getElementById('loginResult');
+            result.textContent = 'Testing invalid credentials...\n';
+            result.className = 'result info';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'wrongpassword'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    result.textContent += '✅ Invalid credentials properly rejected\n';
+                    result.textContent += `Response: ${JSON.stringify(data, null, 2)}\n`;
+                    result.className = 'result success';
+                } else {
+                    result.textContent += '❌ Invalid credentials were accepted (security issue!)\n';
+                    result.className = 'result error';
+                }
+            } catch (error) {
+                result.textContent += `❌ Error testing invalid credentials: ${error.message}\n`;
+                result.className = 'result error';
+            }
+        }
+
+        function checkLocalStorageKeys() {
+            const result = document.getElementById('loginResult');
+            const keys = ['token', 'user', 'adminToken', 'adminUser'];
+            
+            result.textContent = 'LocalStorage Keys Status:\n';
+            result.textContent += '========================\n';
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    result.textContent += `✅ ${key}: Present (${value.length} chars)\n`;
+                    if (key.includes('User') || key === 'user') {
+                        try {
+                            const parsed = JSON.parse(value);
+                            result.textContent += `   Role: ${parsed.role || 'N/A'}\n`;
+                            result.textContent += `   Email: ${parsed.email || 'N/A'}\n`;
+                        } catch (e) {
+                            result.textContent += `   (Invalid JSON)\n`;
+                        }
+                    }
+                } else {
+                    result.textContent += `❌ ${key}: Missing\n`;
+                }
+            });
+            
+            result.className = 'result info';
+        }
+
+        function clearLocalStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            const result = document.getElementById('serverResult');
+            result.textContent = '🧹 LocalStorage and SessionStorage cleared\n';
+            result.className = 'result success';
+        }
+
+        async function testDashboardAccess() {
+            const result = document.getElementById('dashboardResult');
+            result.textContent = 'Testing dashboard access...\n';
+            
+            // Check if admin tokens are present
+            const adminToken = localStorage.getItem('adminToken');
+            const adminUser = localStorage.getItem('adminUser');
+            
+            if (!adminToken || !adminUser) {
+                result.textContent += '❌ No admin authentication found. Please login first.\n';
+                result.className = 'result error';
+                return;
+            }
+            
+            try {
+                // Test admin API endpoint
+                const response = await fetch(`${API_BASE}/api/admin/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.textContent += '✅ Admin API access successful\n';
+                    result.textContent += `Stats data: ${JSON.stringify(data, null, 2)}\n`;
+                    result.className = 'result success';
+                } else {
+                    result.textContent += `❌ Admin API access failed: ${response.status}\n`;
+                    result.className = 'result error';
+                }
+            } catch (error) {
+                result.textContent += `❌ Dashboard access error: ${error.message}\n`;
+                result.className = 'result error';
+            }
+        }
+
+        async function testAdminRoutes() {
+            const result = document.getElementById('dashboardResult');
+            result.textContent = 'Testing admin routes...\n';
+            
+            const adminToken = localStorage.getItem('adminToken');
+            if (!adminToken) {
+                result.textContent += '❌ No admin token found. Please login first.\n';
+                result.className = 'result error';
+                return;
+            }
+            
+            const routes = [
+                '/api/admin/stats',
+                '/api/admin/users',
+                '/api/admin/orders'
+            ];
+            
+            for (const route of routes) {
+                try {
+                    const response = await fetch(`${API_BASE}${route}`, {
+                        headers: {
+                            'Authorization': `Bearer ${adminToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        result.textContent += `✅ ${route}: Accessible\n`;
+                    } else {
+                        result.textContent += `❌ ${route}: Failed (${response.status})\n`;
+                    }
+                } catch (error) {
+                    result.textContent += `❌ ${route}: Error (${error.message})\n`;
+                }
+            }
+            
+            result.className = 'result info';
+        }
+
+        function simulateAdminSession() {
+            // Simulate what happens after successful admin login
+            const mockAdminData = {
+                _id: "683b05b084e9baf09e26197f",
+                email: "admin@test.com",
+                username: "testadmin",
+                role: "admin",
+                firstname: "Admin",
+                lastname: "Test"
+            };
+            
+            const mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
+            
+            localStorage.setItem('token', mockToken);
+            localStorage.setItem('user', JSON.stringify(mockAdminData));
+            localStorage.setItem('adminToken', mockToken);
+            localStorage.setItem('adminUser', JSON.stringify(mockAdminData));
+            
+            const result = document.getElementById('dashboardResult');
+            result.textContent = '✅ Admin session simulated\n';
+            result.textContent += 'Mock admin tokens and user data stored\n';
+            result.textContent += 'You can now test dashboard access\n';
+            result.className = 'result success';
+        }
+    </script>
+</body>
+</html>

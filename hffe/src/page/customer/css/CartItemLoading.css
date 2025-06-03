@@ -1,0 +1,41 @@
+/* Cart Item loading and updating states */
+
+/* Quantity selector updating state */
+.quantity-selector.updating {
+  position: relative;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.quantity-selector .quantity-loader {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #ff4d4f;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  animation: quantity-spinner 0.8s linear infinite;
+}
+
+@keyframes quantity-spinner {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Remove button loading state */
+.remove-item.removing {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+/* Disabled states */
+.quantity-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

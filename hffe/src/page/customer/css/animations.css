@@ -1,0 +1,78 @@
+/* Animation styles for scroll effects and fading */
+
+/* Base state for scroll animations - initially invisible but visible on load */
+.scroll-animation {
+  opacity: 0;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+/* Animated state - visible and transformed */
+.scroll-animation.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Make sure product cards are always visible */
+.productGrid .productCard,
+.productGrid .animate {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* Fade in animation */
+.fade-in {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.fade-in.animate {
+  opacity: 1;
+}
+
+/* Different animation types */
+.scroll-animation.from-bottom {
+  transform: translateY(40px);
+}
+
+.scroll-animation.from-left {
+  transform: translateX(-40px);
+}
+
+.scroll-animation.from-right {
+  transform: translateX(40px);
+}
+
+.scroll-animation.zoom-in {
+  transform: scale(0.9);
+}
+
+/* Different animation delays for staggered effects */
+.delay-100 { transition-delay: 100ms; }
+.delay-200 { transition-delay: 200ms; }
+.delay-300 { transition-delay: 300ms; }
+.delay-400 { transition-delay: 400ms; }
+.delay-500 { transition-delay: 500ms; }
+
+/* Product grid specific animations */
+.productGrid .animate {
+  transition: all 0.5s ease;
+}
+
+/* Product card placeholder animation */
+.product-card-placeholder {
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* Ensure product cards have proper animations on hover instead of scroll */
+.productCard {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.productCard:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}

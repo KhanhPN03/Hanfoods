@@ -1,0 +1,59 @@
+/* Tùy biến toast styles để phù hợp với thiết kế của ứng dụng */
+.Toastify__toast {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 500;
+  font-family: 'Quicksand', 'Roboto', 'Segoe UI', Arial, sans-serif;
+  min-width: 250px;
+}
+
+.Toastify__toast-theme--light.Toastify__toast--success {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.Toastify__toast-theme--light.Toastify__toast--info {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.Toastify__toast-theme--light.Toastify__toast--warning {
+  background-color: #f39c12;
+  color: white;
+}
+
+.Toastify__toast-theme--light.Toastify__toast--error {
+  background-color: #e74c3c;
+  color: white;
+}
+
+/* Tùy biến thanh progress */
+.Toastify__progress-bar {
+  height: 3px;
+}
+
+.Toastify__progress-bar--success {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.Toastify__progress-bar--info {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.Toastify__progress-bar--warning {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.Toastify__progress-bar--error {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Tùy biến nút đóng */
+.Toastify__close-button {
+  color: white;
+  opacity: 0.7;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}

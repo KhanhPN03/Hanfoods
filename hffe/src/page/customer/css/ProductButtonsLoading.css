@@ -1,0 +1,53 @@
+/* Loading state for product action buttons */
+.add-to-cart-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.add-to-cart-btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 15px; /* Adjust based on your icon positioning */
+  margin-top: -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: button-loading-spinner 0.8s linear infinite;
+}
+
+@keyframes button-loading-spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Disabled states for buttons */
+.add-to-cart-btn:disabled, 
+.buy-now-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Stock indicators */
+.stock-info {
+  font-size: 0.9rem;
+  color: #2ecc71;
+  margin-left: 12px;
+}
+
+.stock-info.low-stock {
+  color: #f39c12;
+  font-weight: 500;
+}
+
+.stock-info.out-of-stock {
+  color: #e74c3c;
+  font-weight: 500;
+}
