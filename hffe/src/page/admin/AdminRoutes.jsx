@@ -2,13 +2,13 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 import AdminLogin from './AdminLogin';
-import ImprovedDashboard from './pages/ImprovedDashboard';
-import ImprovedProductManagement from './pages/ImprovedProductManagement';
-import ImprovedAccountManagement from './pages/ImprovedAccountManagement';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminProductManagement from './pages/AdminProductManagement';
+import AdminAccountManagement from './pages/AdminAccountManagement';
 import DiscountManagement from './pages/DiscountManagement';
 import OrderManagement from './pages/OrderManagement';
 import RevenueManagement from './pages/RevenueManagement';
-import ImprovedSettingsManagement from './pages/ImprovedSettingsManagement';
+import AdminSettingsManagement from './pages/AdminSettingsManagement';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -37,13 +37,13 @@ const AdminRoutes = () => {
       }>
         {/* Default route - redirect to dashboard */}
         <Route index element={<Navigate to="/admin/dashboard" replace />} />        {/* Admin Dashboard Routes */}
-        <Route path="dashboard" element={<ImprovedDashboard />} />
-        <Route path="products" element={<ImprovedProductManagement />} />
-        <Route path="accounts" element={<ImprovedAccountManagement />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="products" element={<AdminProductManagement />} />
+        <Route path="accounts" element={<AdminAccountManagement />} />
         <Route path="discounts" element={<DiscountManagement />} />
         <Route path="orders" element={<OrderManagement />} />
         <Route path="revenue" element={<RevenueManagement />} />
-        <Route path="settings" element={<ImprovedSettingsManagement />} />
+        <Route path="settings" element={<AdminSettingsManagement />} />
         
         {/* Catch all route - redirect to dashboard */}
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { Eye, EyeOff, Lock, Mail, Shield } from 'lucide-react';
@@ -11,9 +11,23 @@ const AdminLogin = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAppContext();
+  const [showPassword, setShowPassword] = useState(false);  const navigate = useNavigate();
+  const { login, user, isLoading: contextLoading } = useAppContext();
+
+  // Check if admin user is already logged in and redirect to admin dashboard
+  useEffect(() => {
+    // Only redirect if not loading
+    if (!contextLoading) {
+      if (user && user.role === 'admin') {
+        console.log('Admin user already logged in, redirecting to admin dashboard');
+        navigate('/admin/dashboard', { replace: true });
+      } else if (user && user.role !== 'admin') {
+        // If regular user tries to access admin login, redirect to customer login
+        console.log('Regular user trying to access admin login, redirecting to customer login');
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [user, contextLoading, navigate]);
 
   const handleChange = (e) => {
     setFormData({

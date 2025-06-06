@@ -10,79 +10,43 @@ import StatCard from '../components/StatCard';
 import AdminApiService from '../../../services/AdminApiService';
 import '../css/Dashboard.css';
 
-const ImprovedDashboard = () => {
+const AdminDashboard = () => {
   const [stats, setStats] = useState({
     products: { totalProducts: 0, lowStockCount: 0 },
     orders: { totalOrders: 0, pendingOrders: 0, totalRevenue: 0 },
     users: { totalUsers: 0, activeUsers: 0 }
-  });
-  const [recentOrders, setRecentOrders] = useState([]);
+  });  const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [timeRange, setTimeRange] = useState('30d');
-
-  const fetchMockData = useCallback(() => {
-    // Mock data as fallback
-    setStats({
-      products: { totalProducts: 156, lowStockCount: 12 },
-      orders: { totalOrders: 89, pendingOrders: 23, totalRevenue: 125670.50 },
-      users: { totalUsers: 1204, activeUsers: 892 }
-    });
-
-    setRecentOrders([
-      {
-        id: 1,
-        orderNumber: 'ORD-2024-001',
-        customer: 'John Doe',
-        total: 259.99,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        orderNumber: 'ORD-2024-002', 
-        customer: 'Jane Smith',
-        total: 189.50,
-        status: 'completed',
-        createdAt: new Date().toISOString()
-      }
-    ]);
-  }, []);
-
-  const fetchDashboardData = useCallback(async () => {
+  const [error, setError] = useState(null);const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
     try {
-      console.log('Fetching dashboard data...');
+      // Use AdminApiService methods instead of direct API calls
+      const [statsData, ordersData] = await Promise.all([
+        AdminApiService.getDashboardStats(),
+        AdminApiService.getRecentOrders(10)
+      ]);
       
-      // Try to fetch real data
-      const dashboardStats = await AdminApiService.getDashboardStats();
-      console.log('Dashboard stats:', dashboardStats);
-      
-      if (dashboardStats) {
-        setStats(dashboardStats);
-      } else {
-        throw new Error('No dashboard stats returned');
+      // Set stats data from AdminApiService
+      if (statsData) {
+        setStats(statsData);
       }
       
-      try {
-        const recentOrdersData = await AdminApiService.getRecentOrders(10);
-        setRecentOrders(recentOrdersData.orders || []);
-      } catch (ordersError) {
-        console.warn('Could not fetch recent orders:', ordersError);
+      // Set recent orders data from AdminApiService
+      if (ordersData && ordersData.orders) {
+        setRecentOrders(ordersData.orders);
+      } else if (Array.isArray(ordersData)) {
+        setRecentOrders(ordersData);
+      } else {
         setRecentOrders([]);
       }
-      
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setError(error.message);
-      // Use mock data as fallback
-      fetchMockData();
+    } catch (err) {
+      console.error('Dashboard data fetch error:', err);
+      setError(err.message || 'Lỗi khi tải dữ liệu dashboard');
     } finally {
       setLoading(false);
     }
-  }, [timeRange, fetchMockData]);
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -216,4 +180,4 @@ const ImprovedDashboard = () => {
   );
 };
 
-export default ImprovedDashboard;
+export default AdminDashboard;

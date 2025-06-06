@@ -9,19 +9,20 @@ import {
   Filter
 } from 'lucide-react';
 import AdminApiService from '../../../services/AdminApiService';
+import AddProductModal from '../components/AddProductModal';
 import '../css/AdminTable.css';
 
-const ImprovedProductManagement = () => {
+const AdminProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [stats, setStats] = useState({
     totalProducts: 0,
     activeProducts: 0,
     outOfStock: 0,
     totalValue: 0
-  });
-  const [filters, setFilters] = useState({
+  });  const [filters, setFilters] = useState({
     search: '',
     category: '',
     status: ''
@@ -36,16 +37,20 @@ const ImprovedProductManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('Fetching products...');
+        console.log('Fetching products...');
       const response = await AdminApiService.getProducts();
       console.log('Products response:', response);
       
-      if (response && response.products) {
+      if (response && response.success && response.products && Array.isArray(response.products)) {
+        setProducts(response.products);
+      } else if (response && response.products && Array.isArray(response.products)) {
         setProducts(response.products);
       } else if (Array.isArray(response)) {
         setProducts(response);
+      } else if (response && response.data && Array.isArray(response.data)) {
+        setProducts(response.data);
       } else {
+        console.warn('Unexpected response format:', response);
         throw new Error('Invalid products response format');
       }
       
@@ -93,9 +98,16 @@ const ImprovedProductManagement = () => {
       });
     }
   };
-
   const handleSearch = (e) => {
     setFilters({ ...filters, search: e.target.value });
+  };
+  const handleAddProduct = () => {
+    setShowAddModal(true);
+  };
+
+  const handleProductAdded = () => {
+    fetchProducts(); // Refresh the products list
+    fetchStats(); // Refresh the stats
   };
 
   const filteredProducts = products.filter(product => {
@@ -120,8 +132,7 @@ const ImprovedProductManagement = () => {
         <div>
           <h1 className="page-title">Quản lý sản phẩm</h1>
           <p className="page-subtitle">Quản lý toàn bộ sản phẩm trong hệ thống</p>
-        </div>
-        <button className="btn btn-primary">
+        </div>        <button className="btn btn-primary" onClick={handleAddProduct}>
           <Plus size={16} />
           Thêm sản phẩm mới
         </button>
@@ -168,10 +179,9 @@ const ImprovedProductManagement = () => {
         <div className="stat-card">
           <div className="stat-icon" style={{ backgroundColor: '#feca5720', color: '#feca57' }}>
             <Package size={20} />
-          </div>
-          <div className="stat-info">
+          </div>          <div className="stat-info">
             <p className="stat-label">Tổng giá trị</p>
-            <h3 className="stat-value">₫{stats.totalValue.toLocaleString()}</h3>
+            <h3 className="stat-value">₫{(stats.totalValue || 0).toLocaleString()}</h3>
           </div>
         </div>
       </div>
@@ -215,7 +225,7 @@ const ImprovedProductManagement = () => {
                   </div>
                 </td>
                 <td>{product.category}</td>
-                <td>₫{product.price.toLocaleString()}</td>
+                <td>₫{(product.price || 0).toLocaleString()}</td>
                 <td>
                   <span className={`stock ${product.stock === 0 ? 'out-of-stock' : product.stock < 10 ? 'low-stock' : 'in-stock'}`}>
                     {product.stock}
@@ -242,9 +252,7 @@ const ImprovedProductManagement = () => {
               </tr>
             ))}
           </tbody>
-        </table>
-
-        {filteredProducts.length === 0 && (
+        </table>        {filteredProducts.length === 0 && (
           <div className="empty-state">
             <Package size={48} />
             <h3>Không có sản phẩm nào</h3>
@@ -252,8 +260,15 @@ const ImprovedProductManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={handleProductAdded}
+      />
     </div>
   );
 };
 
-export default ImprovedProductManagement;
+export default AdminProductManagement;

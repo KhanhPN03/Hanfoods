@@ -11,12 +11,14 @@ import {
   User
 } from 'lucide-react';
 import AdminApiService from '../../../services/AdminApiService';
+import AddAccountModal from '../components/AddAccountModal';
 import '../css/AdminTable.css';
 
 const ImprovedAccountManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -37,17 +39,20 @@ const ImprovedAccountManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      setError(null);
-      
-      console.log('Fetching users...');
+      setError(null);      console.log('Fetching users...');
       const response = await AdminApiService.getUsers();
       console.log('Users response:', response);
       
-      if (response && response.users) {
+      if (response && response.success && response.data && response.data.users) {
+        setUsers(response.data.users);
+      } else if (response && response.users && Array.isArray(response.users)) {
         setUsers(response.users);
       } else if (Array.isArray(response)) {
         setUsers(response);
+      } else if (response && response.data && Array.isArray(response.data)) {
+        setUsers(response.data);
       } else {
+        console.warn('Unexpected response format:', response);
         throw new Error('Invalid users response format');
       }
       
@@ -107,9 +112,16 @@ const ImprovedAccountManagement = () => {
       });
     }
   };
-
   const handleSearch = (e) => {
     setFilters({ ...filters, search: e.target.value });
+  };
+  const handleAddAccount = () => {
+    setShowAddModal(true);
+  };
+
+  const handleAccountAdded = () => {
+    fetchUsers(); // Refresh the users list
+    fetchStats(); // Refresh the stats
   };
 
   const filteredUsers = users.filter(user => {
@@ -144,8 +156,7 @@ const ImprovedAccountManagement = () => {
         <div>
           <h1 className="page-title">Quản lý tài khoản</h1>
           <p className="page-subtitle">Quản lý tài khoản người dùng và phân quyền</p>
-        </div>
-        <button className="btn btn-primary">
+        </div>        <button className="btn btn-primary" onClick={handleAddAccount}>
           <UserPlus size={16} />
           Thêm tài khoản mới
         </button>
@@ -296,9 +307,7 @@ const ImprovedAccountManagement = () => {
               </tr>
             ))}
           </tbody>
-        </table>
-
-        {filteredUsers.length === 0 && (
+        </table>        {filteredUsers.length === 0 && (
           <div className="empty-state">
             <Users size={48} />
             <h3>Không có tài khoản nào</h3>
@@ -306,6 +315,13 @@ const ImprovedAccountManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Add Account Modal */}
+      <AddAccountModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={handleAccountAdded}
+      />
     </div>
   );
 };

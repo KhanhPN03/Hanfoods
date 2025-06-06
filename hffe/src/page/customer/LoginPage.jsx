@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom'; // Add useLocation
 import { useAppContext } from '../../context/AppContext';
 import MainHeader from '../../components/shared/MainHeader';
@@ -6,16 +6,24 @@ import MainFooter from '../../components/shared/MainFooter';
 import './css/AuthPages.css';
 import './css/fixScrollbars.css';
 
-const LoginPage = () => {
-  const navigate = useNavigate();
+const LoginPage = () => {  const navigate = useNavigate();
   const location = useLocation(); // Get location for redirect
-  const { login, addNotification, isLoading: contextLoading } = useAppContext();
+  const { login, addNotification, isLoading: contextLoading, user } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [errors, setErrors] = useState({});
+
+  // Check if user is already logged in and redirect to homepage
+  useEffect(() => {
+    // Only redirect if not loading and user exists
+    if (!contextLoading && user) {
+      console.log('User already logged in, redirecting to homepage');
+      navigate('/', { replace: true });
+    }
+  }, [user, contextLoading, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -44,20 +44,14 @@ api.interceptors.response.use(
 
 // Admin API service
 class AdminApiService {
+  // Expose the axios instance for direct API calls if needed
+  static api = api;
+  
   // Dashboard APIs
   async getDashboardStats() {
     try {
-      const [productStats, orderStats, userStats] = await Promise.all([
-        api.get('/api/products/admin/stats'),
-        api.get('/api/orders/admin/stats'),
-        api.get('/api/auth/admin/user-stats')
-      ]);
-
-      return {
-        products: productStats.data,
-        orders: orderStats.data,
-        users: userStats.data
-      };
+      const response = await api.get('/api/admin/dashboard/stats');
+      return response.data.data; // Return the data property from backend response
     } catch (error) {
       throw this.handleError(error);
     }
@@ -65,16 +59,61 @@ class AdminApiService {
 
   async getRecentOrders(limit = 10) {
     try {
-      const response = await api.get(`/api/orders/admin/recent?limit=${limit}`);
+      const response = await api.get(`/api/admin/dashboard/recent-orders?limit=${limit}`);
+      return response.data; // Backend returns { success: true, orders: [...] }
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+  async getRevenueAnalytics(period = '30d') {
+    try {
+      const response = await api.get(`/api/orders/admin/revenue?period=${period}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  async getRevenueAnalytics(period = '30d') {
+  // Additional methods for AdminProductManagement
+  async getProducts(params = {}) {
     try {
-      const response = await api.get(`/api/orders/admin/revenue?period=${period}`);
+      const queryString = new URLSearchParams(params).toString();
+      const response = await api.get(`/api/products${queryString ? `?${queryString}` : ''}`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getProductStats() {
+    try {
+      const response = await api.get('/api/products/admin/stats');
+      return response.data;
+    } catch (error) {
+      // If the endpoint doesn't exist, calculate stats from products
+      try {
+        const productsResponse = await this.getAllProducts();
+        const products = productsResponse.products || [];
+        
+        const stats = {
+          totalProducts: products.length,
+          activeProducts: products.filter(p => p.status === 'active' || p.isActive).length,
+          outOfStock: products.filter(p => (p.stock || 0) === 0).length,
+          totalValue: products.reduce((sum, p) => sum + ((p.price || 0) * (p.stock || 0)), 0)
+        };
+        
+        return stats;
+      } catch (fallbackError) {
+        throw this.handleError(error);
+      }
+    }
+  }
+
+  // Additional methods for AdminAccountManagement
+  async getUsers(params = {}) {
+    try {
+      const queryParams = new URLSearchParams(params);
+      const response = await api.get(`/api/admin/users?${queryParams}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -178,7 +217,6 @@ class AdminApiService {
       throw this.handleError(error);
     }
   }
-
   async getOrderStats() {
     try {
       const response = await api.get('/api/orders/admin/stats');
@@ -188,20 +226,20 @@ class AdminApiService {
     }
   }
 
-  async exportOrders(filters = {}) {
-    try {
-      const queryParams = new URLSearchParams(filters);
-      const response = await api.get(`/api/orders/admin/export?${queryParams}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
   // User Management APIs
   async getAllUsers(params = {}) {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await api.get(`/api/admin/users?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async createUser(userData) {
+    try {
+      const response = await api.post('/api/admin/users', userData);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -554,4 +592,6 @@ class AdminApiService {
 }
 
 const adminApiService = new AdminApiService();
+// Also expose the api instance for direct access
+adminApiService.api = api;
 export default adminApiService;

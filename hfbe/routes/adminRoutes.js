@@ -22,11 +22,16 @@ router.get('/revenue/export', (req, res) => adminController.exportRevenueReport(
 
 // User management routes
 router.get('/users', (req, res) => adminController.getAllUsers(req, res));
+router.post('/users', (req, res) => adminController.createUser(req, res));
 router.get('/users/stats', (req, res) => adminController.getUserStats(req, res));
 router.get('/users/export', (req, res) => adminController.exportUsers(req, res));
 router.get('/users/:id', (req, res) => adminController.getUserById(req, res));
 router.patch('/users/:id/status', (req, res) => adminController.updateUserStatus(req, res));
 router.patch('/users/:id/role', (req, res) => adminController.updateUserRole(req, res));
 router.delete('/users/:id', (req, res) => adminController.deleteUser(req, res));
+
+// Settings management routes
+router.get('/settings', (req, res) => adminController.getSettings(req, res));
+router.put('/settings', (req, res) => adminController.updateSettings(req, res));
 
 module.exports = router;

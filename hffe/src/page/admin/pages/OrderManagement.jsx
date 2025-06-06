@@ -201,8 +201,7 @@ const OrderManagement = () => {
       selector: row => row.createdAt,
       sortable: true,
       cell: row => formatDate(row.createdAt)
-    },
-    {
+    },    {
       name: 'Actions',
       cell: row => (
         <div className="action-buttons">
@@ -227,9 +226,6 @@ const OrderManagement = () => {
           </div>
         </div>
       ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
       width: '200px'
     }
   ];

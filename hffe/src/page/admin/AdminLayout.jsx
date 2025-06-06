@@ -17,7 +17,7 @@ import {
 import './css/AdminLayout.css';
 
 const AdminLayout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Default to open on desktop
   const [currentUser, setCurrentUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -66,7 +66,6 @@ const AdminLayout = () => {
       color: '#a55eea'
     }
   ];
-
   useEffect(() => {
     // Get current user from localStorage or API
     const userData = localStorage.getItem('adminUser');
@@ -76,6 +75,20 @@ const AdminLayout = () => {
       // Redirect to login if no user data
       navigate('/admin/login');
     }
+
+    // Set initial sidebar state based on screen size
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setIsSidebarOpen(false); // Closed by default on mobile
+      } else {
+        setIsSidebarOpen(true); // Open by default on desktop
+      }
+    };
+
+    handleResize(); // Set initial state
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
   }, [navigate]);
 
   const getBreadcrumb = () => {
@@ -95,20 +108,18 @@ const AdminLayout = () => {
     localStorage.removeItem('adminUser');
     localStorage.removeItem('adminToken');
     navigate('/admin/login');
-  };
-
-  const toggleSidebar = () => {
+  };  const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const closeSidebar = () => {
+  };  const closeSidebar = () => {
     setIsSidebarOpen(false);
   };
 
   return (
-    <div className="admin-layout">
-      {/* Sidebar */}
-      <div className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
+    <div className="admin-layout">      {/* Sidebar */}
+      <div 
+        className={`admin-sidebar ${!isSidebarOpen ? 'collapsed' : ''}`}
+        onClick={(e) => e.stopPropagation()} // Ngăn event bubbling
+      >
         <div className="sidebar-header">
           <h1 className="sidebar-logo">HanFoods</h1>
           <p className="sidebar-subtitle">Admin Panel</p>
@@ -120,14 +131,15 @@ const AdminLayout = () => {
             const isActive = location.pathname === item.path;
             
             return (
-              <div key={item.path} className="nav-item">
-                <a
+              <div key={item.path} className="nav-item">                <a
                   href={item.path}
-                  className={`nav-link ${isActive ? 'active' : ''}`}
-                  onClick={(e) => {
+                  className={`nav-link ${isActive ? 'active' : ''}`}                  onClick={(e) => {
                     e.preventDefault();
                     navigate(item.path);
-                    closeSidebar();
+                    // Chỉ đóng sidebar trên mobile
+                    if (window.innerWidth <= 768) {
+                      closeSidebar();
+                    }
                   }}
                 >
                   <IconComponent className="nav-icon" style={{ color: isActive ? '#ffd700' : 'inherit' }} />
@@ -137,10 +149,8 @@ const AdminLayout = () => {
             );
           })}
         </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className={`admin-main ${isSidebarOpen ? '' : 'expanded'}`}>
+      </div>      {/* Main Content */}
+      <div className={`admin-main ${!isSidebarOpen ? 'expanded' : ''}`}>
         {/* Header */}
         <header className="admin-header">
           <div className="header-content">

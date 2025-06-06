@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Redirect Test - Quick Validation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: #fdfdfe;
+        }
+        .test-section h3 {
+            color: #e74c3c;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .test-section h3::before {
+            content: "🧪";
+            margin-right: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px 8px 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button.admin {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        button.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .status {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .info {
+            background: #cff4fc;
+            color: #055160;
+            border-left: 4px solid #0dcaf0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #664d03;
+            border-left: 4px solid #ffc107;
+        }
+        .instructions {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0066cc;
+        }
+        .instructions h4 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        ol {
+            padding-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        #authStatus {
+            font-weight: bold;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .logged-out {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        .logged-in-customer {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #17a2b8;
+        }
+        .logged-in-admin {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        .url-display {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            border-left: 3px solid #6c757d;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentication Redirect Test Suite</h1>
+        
+        <div class="instructions">
+            <h4>📋 Test Instructions:</h4>
+            <ol>
+                <li><strong>Manual Test:</strong> Use the buttons below to login as different user types</li>
+                <li><strong>Redirect Test:</strong> After logging in, click the redirect test buttons</li>
+                <li><strong>Expected Behavior:</strong>
+                    <ul>
+                        <li>Logged-in customers should be redirected from /login to homepage (/)</li>
+                        <li>Logged-in admins should be redirected from /admin/login to /admin/dashboard</li>
+                        <li>Logged-in customers accessing /admin/login should be redirected to /login</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+        
+        <div id="authStatus" class="logged-out">Checking authentication status...</div>
+        
+        <div class="test-section">
+            <h3>Authentication Management</h3>
+            <button onclick="loginCustomer()">🔑 Login as Customer</button>
+            <button class="admin" onclick="loginAdmin()">👨‍💼 Login as Admin</button>
+            <button class="success" onclick="logout()">🚪 Logout</button>
+            
+            <div id="authResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Redirect Tests</h3>
+            <p><strong>Current URL:</strong> <span class="url-display" id="currentUrl">-</span></p>
+            
+            <button onclick="testCustomerLoginRedirect()">Test Customer Login Redirect</button>
+            <button class="admin" onclick="testAdminLoginRedirect()">Test Admin Login Redirect</button>
+            <button onclick="testCrossAccessRedirect()">Test Cross-Access Redirect</button>
+            
+            <div id="redirectResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Manual Navigation Tests</h3>
+            <p>Use these links to manually test redirects in new tabs:</p>
+            
+            <button onclick="openInNewTab('/login')">Open Customer Login</button>
+            <button class="admin" onclick="openInNewTab('/admin/login')">Open Admin Login</button>
+            <button onclick="openInNewTab('/')">Open Homepage</button>
+            <button class="admin" onclick="openInNewTab('/admin/dashboard')">Open Admin Dashboard</button>
+            
+            <div id="manualTestResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        
+        // Update current URL display
+        function updateCurrentUrl() {
+            document.getElementById('currentUrl').textContent = window.location.href;
+        }
+        
+        // Check authentication status
+        function checkAuthStatus() {
+            try {
+                const token = localStorage.getItem('token');
+                const user = JSON.parse(localStorage.getItem('user') || 'null');
+                
+                const statusDiv = document.getElementById('authStatus');
+                
+                if (token && user) {
+                    if (user.role === 'admin') {
+                        statusDiv.innerHTML = `🔒 Logged in as: ${user.firstname} ${user.lastname} (Admin)`;
+                        statusDiv.className = 'logged-in-admin';
+                    } else {
+                        statusDiv.innerHTML = `👤 Logged in as: ${user.firstname} ${user.lastname} (Customer)`;
+                        statusDiv.className = 'logged-in-customer';
+                    }
+                } else {
+                    statusDiv.innerHTML = '🚫 Not logged in';
+                    statusDiv.className = 'logged-out';
+                }
+            } catch (error) {
+                const statusDiv = document.getElementById('authStatus');
+                statusDiv.innerHTML = '⚠️ Error checking auth status';
+                statusDiv.className = 'logged-out';
+            }
+            updateCurrentUrl();
+        }
+        
+        // Customer login
+        async function loginCustomer() {
+            const resultDiv = document.getElementById('authResult');
+            resultDiv.innerHTML = '<div class="status info">🔄 Logging in as customer...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@customer.com',
+                        password: 'password123'
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    resultDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ Customer login successful!<br>
+                            User: ${data.user.firstname} ${data.user.lastname} (${data.user.role})
+                        </div>
+                    `;
+                    checkAuthStatus();
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ Customer login failed: ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Admin login
+        async function loginAdmin() {
+            const resultDiv = document.getElementById('authResult');
+            resultDiv.innerHTML = '<div class="status info">🔄 Logging in as admin...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'admin123'
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    resultDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ Admin login successful!<br>
+                            User: ${data.user.firstname} ${data.user.lastname} (${data.user.role})
+                        </div>
+                    `;
+                    checkAuthStatus();
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ Admin login failed: ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            
+            document.getElementById('authResult').innerHTML = '<div class="status info">👋 Logged out successfully</div>';
+            document.getElementById('redirectResult').innerHTML = '';
+            document.getElementById('manualTestResult').innerHTML = '';
+            
+            checkAuthStatus();
+        }
+        
+        // Test customer login redirect
+        function testCustomerLoginRedirect() {
+            const resultDiv = document.getElementById('redirectResult');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!user) {
+                resultDiv.innerHTML = '<div class="status warning">⚠️ Please login first</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="status info">
+                    🧪 Testing customer login redirect...<br>
+                    Current user: ${user.firstname} ${user.lastname} (${user.role})<br>
+                    <a href="/login" target="_blank">Click here to test /login redirect</a>
+                </div>
+            `;
+        }
+        
+        // Test admin login redirect
+        function testAdminLoginRedirect() {
+            const resultDiv = document.getElementById('redirectResult');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!user) {
+                resultDiv.innerHTML = '<div class="status warning">⚠️ Please login first</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="status info">
+                    🧪 Testing admin login redirect...<br>
+                    Current user: ${user.firstname} ${user.lastname} (${user.role})<br>
+                    <a href="/admin/login" target="_blank">Click here to test /admin/login redirect</a>
+                </div>
+            `;
+        }
+        
+        // Test cross access redirect
+        function testCrossAccessRedirect() {
+            const resultDiv = document.getElementById('redirectResult');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!user) {
+                resultDiv.innerHTML = '<div class="status warning">⚠️ Please login first</div>';
+                return;
+            }
+            
+            if (user.role === 'customer') {
+                resultDiv.innerHTML = `
+                    <div class="status info">
+                        🧪 Testing customer accessing admin login...<br>
+                        Current user: ${user.firstname} ${user.lastname} (customer)<br>
+                        Expected: Should redirect to /login<br>
+                        <a href="/admin/login" target="_blank">Click here to test customer → admin login</a>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="status info">
+                        🧪 You are logged in as admin. Login as customer first to test cross-access.
+                    </div>
+                `;
+            }
+        }
+        
+        // Open in new tab
+        function openInNewTab(path) {
+            const fullUrl = window.location.origin + path;
+            window.open(fullUrl, '_blank');
+            
+            document.getElementById('manualTestResult').innerHTML = `
+                <div class="status info">
+                    🌐 Opened: <strong>${fullUrl}</strong><br>
+                    Check the new tab for redirect behavior
+                </div>
+            `;
+        }
+        
+        // Initialize
+        checkAuthStatus();
+        setInterval(updateCurrentUrl, 1000);
+    </script>
+</body>
+</html>

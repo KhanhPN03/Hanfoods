@@ -421,25 +421,29 @@ class AdminController {
       { $sort: { date: -1 } }
     ]);
   }
-
   // Recent Orders for Dashboard
   async getRecentOrders(req, res) {
     try {
       const { limit = 10 } = req.query;
       
       const orders = await Order.find()
-        .populate('customer', 'username email')
-        .populate('items.product', 'name')
+        .populate('userId', 'username email firstname lastname')
+        .populate('items.productId', 'name')
         .sort({ createdAt: -1 })
         .limit(parseInt(limit))
         .lean();
 
       const formattedOrders = orders.map(order => ({
         id: order._id,
-        orderNumber: order.orderNumber,
-        customerName: order.customer?.username || 'Unknown',
-        products: order.items.map(item => item.product?.name || 'Unknown').join(', '),
-        total: order.total,
+        orderNumber: order.orderCode || order.orderId,
+        customerName: order.userId ? 
+          `${order.userId.firstname || ''} ${order.userId.lastname || ''}`.trim() || 
+          order.userId.username || 
+          order.userId.email : 'Unknown',
+        products: order.items.map(item => 
+          item.productId?.name || item.name || 'Unknown'
+        ).join(', '),
+        total: order.totalAmount,
         status: order.status,
         createdAt: order.createdAt
       }));
@@ -541,6 +545,115 @@ class AdminController {
       res.status(500).json({
         success: false,
         message: 'Error fetching users',
+        error: error.message      });
+    }
+  }
+
+  // Create new user (admin only)
+  async createUser(req, res) {
+    try {
+      const { 
+        firstName, 
+        lastName, 
+        email, 
+        phone, 
+        password, 
+        role = 'customer', 
+        isActive = true,
+        address = {}
+      } = req.body;
+
+      // Validate required fields
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'First name, last name, email, and password are required'
+        });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide a valid email address'
+        });
+      }
+
+      // Check if user already exists
+      const existingUser = await Account.findOne({ email: email.toLowerCase() });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+
+      // Validate role
+      const validRoles = ['customer', 'admin', 'moderator'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid role specified'
+        });
+      }
+
+      // Create address if provided
+      let addressId = null;
+      if (address.street || address.city || address.state || address.zipCode) {
+        const Address = require('../models/Address');
+        const newAddress = new Address({
+          street: address.street || '',
+          city: address.city || '',
+          state: address.state || '',
+          zipCode: address.zipCode || '',
+          country: address.country || 'Vietnam'
+        });
+        const savedAddress = await newAddress.save();
+        addressId = savedAddress._id;
+      }
+
+      // Generate account code (unique identifier)
+      const accountCode = `ACC${Date.now()}${Math.floor(Math.random() * 1000)}`;
+
+      // Create new user
+      const newUser = new Account({
+        firstname: firstName,
+        lastname: lastName,
+        email: email.toLowerCase(),
+        phone: phone || '',
+        accountCode,
+        role,
+        isActive,
+        addressId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      // Set password (this will be hashed by the model's pre-save hook)
+      newUser.password = password;
+      
+      const savedUser = await newUser.save();
+
+      // Remove sensitive data before sending response
+      const userResponse = savedUser.toObject();
+      delete userResponse.hash;
+      delete userResponse.salt;
+      delete userResponse.password;
+
+      res.status(201).json({
+        success: true,
+        message: 'User created successfully',
+        data: {
+          user: userResponse
+        }
+      });
+
+    } catch (error) {
+      console.error('Create user error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error creating user',
         error: error.message
       });
     }
@@ -693,6 +806,116 @@ class AdminController {
     }
   }
 
+  // Create new user (admin only)
+  async createUser(req, res) {
+    try {
+      const { 
+        firstName, 
+        lastName, 
+        email, 
+        phone, 
+        password, 
+        role = 'customer', 
+        isActive = true,
+        address = {}
+      } = req.body;
+
+      // Validate required fields
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'First name, last name, email, and password are required'
+        });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide a valid email address'
+        });
+      }
+
+      // Check if user already exists
+      const existingUser = await Account.findOne({ email: email.toLowerCase() });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+
+      // Validate role
+      const validRoles = ['customer', 'admin', 'moderator'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid role specified'
+        });
+      }
+
+      // Create address if provided
+      let addressId = null;
+      if (address.street || address.city || address.state || address.zipCode) {
+        const Address = require('../models/Address');
+        const newAddress = new Address({
+          street: address.street || '',
+          city: address.city || '',
+          state: address.state || '',
+          zipCode: address.zipCode || '',
+          country: address.country || 'Vietnam'
+        });
+        const savedAddress = await newAddress.save();
+        addressId = savedAddress._id;
+      }
+
+      // Generate account code (unique identifier)
+      const accountCode = `ACC${Date.now()}${Math.floor(Math.random() * 1000)}`;
+
+      // Create new user
+      const newUser = new Account({
+        firstname: firstName,
+        lastname: lastName,
+        email: email.toLowerCase(),
+        phone: phone || '',
+        accountCode,
+        role,
+        isActive,
+        addressId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      // Set password (this will be hashed by the model's pre-save hook)
+      newUser.password = password;
+      
+      const savedUser = await newUser.save();
+
+      // Remove sensitive data before sending response
+      const userResponse = savedUser.toObject();
+      delete userResponse.hash;
+      delete userResponse.salt;
+      delete userResponse.password;
+
+      res.status(201).json({
+        success: true,
+        message: 'User created successfully',
+        data: {
+          user: userResponse
+        }
+      });
+
+    } catch (error) {
+      console.error('Create user error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error creating user',
+        error: error.message
+      });
+    }
+  }
+
   // Get user statistics
   async getUserStats(req, res) {
     try {
@@ -801,6 +1024,89 @@ class AdminController {
       res.status(500).json({
         success: false,
         message: 'Error exporting users',
+        error: error.message
+      });
+    }  }
+
+  // Settings Management
+  async getSettings(req, res) {
+    try {
+      // Mock settings data - in real app, this would come from a settings collection
+      const settings = {
+        general: {
+          siteName: 'HanFoods Admin',
+          siteUrl: 'https://hanfoods.com',
+          adminEmail: 'admin@hanfoods.com',
+          timezone: 'Asia/Ho_Chi_Minh',
+          language: 'vi',
+          dateFormat: 'DD/MM/YYYY',
+          currency: 'VND'
+        },
+        email: {
+          smtpHost: 'smtp.gmail.com',
+          smtpPort: 587,
+          smtpUser: 'noreply@hanfoods.com',
+          smtpSecure: true,
+          fromEmail: 'noreply@hanfoods.com',
+          fromName: 'HanFoods'
+        },
+        payment: {
+          enableCOD: true,
+          enableBankTransfer: true,
+          enableMomo: false,
+          enableZaloPay: false,
+          minOrderAmount: 50000,
+          shippingFee: 25000,
+          freeShippingThreshold: 200000
+        },
+        notification: {
+          enableEmailNotifications: true,
+          enableSMSNotifications: false,
+          enablePushNotifications: true,
+          notifyOnNewOrder: true,
+          notifyOnLowStock: true,
+          lowStockThreshold: 10
+        },
+        security: {
+          enableTwoFactor: false,
+          sessionTimeout: 24,
+          maxLoginAttempts: 5,
+          enableIPWhitelist: false,
+          allowedIPs: []
+        }
+      };
+
+      res.json({
+        success: true,
+        data: settings
+      });
+    } catch (error) {
+      console.error('Get settings error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching settings',
+        error: error.message
+      });
+    }
+  }
+
+  async updateSettings(req, res) {
+    try {
+      const { settings } = req.body;
+
+      // In real app, you would validate and save to database
+      // For now, just return success
+      
+      res.json({
+        success: true,
+        message: 'Settings updated successfully',
+        data: settings
+      });
+    } catch (error) {
+      console.error('Update settings error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error updating settings',
         error: error.message
       });
     }

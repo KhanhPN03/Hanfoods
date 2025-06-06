@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Redirect - Manual Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .test-case h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .admin-btn {
+            background: #dc3545;
+        }
+        .admin-btn:hover {
+            background: #c82333;
+        }
+        .result {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #99d3ff;
+        }
+        #status {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .logged-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .logged-in {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentication Redirect Test</h1>
+        
+        <div id="status" class="logged-out">Not logged in</div>
+        
+        <div class="test-case">
+            <h3>Setup Mock Authentication</h3>
+            <p>First, simulate login states to test redirect behavior:</p>
+            
+            <button onclick="mockCustomerLogin()">Mock Customer Login</button>
+            <button class="admin-btn" onclick="mockAdminLogin()">Mock Admin Login</button>
+            <button onclick="clearAuth()">Clear Auth (Logout)</button>
+            
+            <div id="authResult"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>Test 1: Customer Login Page Redirect</h3>
+            <p><strong>Expected:</strong> Logged-in customer should be redirected from /login to homepage</p>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Click "Mock Customer Login" above</li>
+                <li>Click the link below to open customer login page</li>
+                <li>Should redirect to homepage automatically</li>
+            </ol>
+            
+            <button onclick="openCustomerLogin()">🔗 Open Customer Login Page</button>
+            
+            <div id="customerResult"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>Test 2: Admin Login Page Redirect</h3>
+            <p><strong>Expected:</strong> Logged-in admin should be redirected from /admin/login to /admin/dashboard</p>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Click "Mock Admin Login" above</li>
+                <li>Click the link below to open admin login page</li>
+                <li>Should redirect to admin dashboard automatically</li>
+            </ol>
+            
+            <button class="admin-btn" onclick="openAdminLogin()">🔗 Open Admin Login Page</button>
+            
+            <div id="adminResult"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>Test 3: Cross-Access Prevention</h3>
+            <p><strong>Expected:</strong> Customer accessing admin login should be redirected to customer login</p>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Click "Mock Customer Login" above</li>
+                <li>Click the link below to open admin login page</li>
+                <li>Should redirect to customer login page</li>
+            </ol>
+            
+            <button onclick="testCrossAccess()">🔗 Test Customer → Admin Login</button>
+            
+            <div id="crossResult"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>Current App Pages</h3>
+            <p>Direct links to test manually:</p>
+            
+            <button onclick="window.open('/', '_blank')">🏠 Homepage</button>
+            <button onclick="window.open('/login', '_blank')">🔑 Customer Login</button>
+            <button class="admin-btn" onclick="window.open('/admin/login', '_blank')">👨‍💼 Admin Login</button>
+            <button class="admin-btn" onclick="window.open('/admin/dashboard', '_blank')">📊 Admin Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            const statusDiv = document.getElementById('status');
+            
+            if (user) {
+                statusDiv.textContent = `Logged in as: ${user.firstname} ${user.lastname} (${user.role})`;
+                statusDiv.className = 'logged-in';
+            } else {
+                statusDiv.textContent = 'Not logged in';
+                statusDiv.className = 'logged-out';
+            }
+        }
+        
+        function mockCustomerLogin() {
+            const customerData = {
+                _id: 'customer123',
+                firstname: 'Test',
+                lastname: 'Customer',
+                email: 'test@customer.com',
+                role: 'customer',
+                accountCode: 'CUST-TEST001'
+            };
+            
+            localStorage.setItem('token', 'mock_customer_token_' + Date.now());
+            localStorage.setItem('user', JSON.stringify(customerData));
+            
+            document.getElementById('authResult').innerHTML = 
+                '<div class="result success">✅ Mock customer login successful</div>';
+            
+            updateStatus();
+        }
+        
+        function mockAdminLogin() {
+            const adminData = {
+                _id: 'admin123',
+                firstname: 'Test',
+                lastname: 'Admin',
+                email: 'admin@test.com',
+                role: 'admin',
+                accountCode: 'ADMIN-TEST001'
+            };
+            
+            localStorage.setItem('token', 'mock_admin_token_' + Date.now());
+            localStorage.setItem('user', JSON.stringify(adminData));
+            
+            document.getElementById('authResult').innerHTML = 
+                '<div class="result success">✅ Mock admin login successful</div>';
+            
+            updateStatus();
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            
+            document.getElementById('authResult').innerHTML = 
+                '<div class="result info">🚪 Authentication cleared</div>';
+            
+            // Clear all result divs
+            document.getElementById('customerResult').innerHTML = '';
+            document.getElementById('adminResult').innerHTML = '';
+            document.getElementById('crossResult').innerHTML = '';
+            
+            updateStatus();
+        }
+        
+        function openCustomerLogin() {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!user) {
+                document.getElementById('customerResult').innerHTML = 
+                    '<div class="result error">❌ Please mock login first</div>';
+                return;
+            }
+            
+            document.getElementById('customerResult').innerHTML = 
+                '<div class="result info">🔄 Opening customer login page - check for redirect...</div>';
+            
+            window.open('/login', '_blank');
+        }
+        
+        function openAdminLogin() {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!user) {
+                document.getElementById('adminResult').innerHTML = 
+                    '<div class="result error">❌ Please mock login first</div>';
+                return;
+            }
+            
+            document.getElementById('adminResult').innerHTML = 
+                '<div class="result info">🔄 Opening admin login page - check for redirect...</div>';
+            
+            window.open('/admin/login', '_blank');
+        }
+        
+        function testCrossAccess() {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!user || user.role !== 'customer') {
+                document.getElementById('crossResult').innerHTML = 
+                    '<div class="result error">❌ Please mock customer login first</div>';
+                return;
+            }
+            
+            document.getElementById('crossResult').innerHTML = 
+                '<div class="result info">🔄 Customer accessing admin login - should redirect to customer login...</div>';
+            
+            window.open('/admin/login', '_blank');
+        }
+        
+        // Initialize
+        updateStatus();
+    </script>
+</body>
+</html>
