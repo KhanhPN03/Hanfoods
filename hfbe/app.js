@@ -261,7 +261,6 @@ const initializeRoutes = () => {
   } catch (error) {
     console.error("Error loading payment routes:", error.message);
   }
-
   // Wishlist routes
   try {
     const wishlistRoutes = require("./routes/wishlistRoutes");
@@ -270,6 +269,18 @@ const initializeRoutes = () => {
   } catch (error) {
   console.error("Error loading wishlist routes:", error.message);
   }
+
+  // Upload routes
+  try {
+    const uploadRoutes = require("./routes/uploadRoutes");
+    app.use("/api/upload", uploadRoutes);
+    console.log("Upload routes loaded successfully");
+  } catch (error) {
+    console.error("Error loading upload routes:", error.message);
+  }
+
+  // Serve static files from uploads directory
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
   // Error handling middleware
   app.use((err, req, res, next) => {

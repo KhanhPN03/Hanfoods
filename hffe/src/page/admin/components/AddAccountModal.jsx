@@ -3,10 +3,9 @@ import { X, Eye, EyeOff } from 'lucide-react';
 import AdminApiService from '../../../services/AdminApiService';
 import '../css/Modal.css';
 
-const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, setFormData] = useState({
+    firstname: '',
+    lastname: '',
     email: '',
     phone: '',
     password: '',
@@ -17,8 +16,11 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
       street: '',
       city: '',
       state: '',
-      zipCode: '',
-      country: 'Vietnam'
+      postalCode: '',
+      country: 'Vietnam',
+      ward: '',
+      fullName: '',
+      phone: ''
     }
   });
   
@@ -58,17 +60,16 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
-
   const validateForm = () => {
     const newErrors = {};
     
     // Required fields validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!formData.firstname.trim()) {
+      newErrors.firstname = 'First name is required';
     }
     
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+    if (!formData.lastname.trim()) {
+      newErrors.lastname = 'Last name is required';
     }
     
     if (!formData.email.trim()) {
@@ -105,12 +106,11 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
       return;
     }
     
-    setLoading(true);
-    try {
+    setLoading(true);    try {
       // Prepare data for API
       const accountData = {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
+        firstname: formData.firstname.trim(),
+        lastname: formData.lastname.trim(),
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim(),
         password: formData.password,
@@ -120,8 +120,11 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
           street: formData.address.street.trim(),
           city: formData.address.city.trim(),
           state: formData.address.state.trim(),
-          zipCode: formData.address.zipCode.trim(),
-          country: formData.address.country
+          postalCode: formData.address.postalCode.trim(),
+          country: formData.address.country,
+          ward: formData.address.ward.trim(),
+          fullName: formData.address.fullName.trim(),
+          phone: formData.address.phone.trim()
         }
       };
       
@@ -129,8 +132,8 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
       
       // Reset form
       setFormData({
-        firstName: '',
-        lastName: '',
+        firstname: '',
+        lastname: '',
         email: '',
         phone: '',
         password: '',
@@ -141,8 +144,11 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
           street: '',
           city: '',
           state: '',
-          zipCode: '',
-          country: 'Vietnam'
+          postalCode: '',
+          country: 'Vietnam',
+          ward: '',
+          fullName: '',
+          phone: ''
         }
       });
       
@@ -161,12 +167,11 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
-
   const handleClose = () => {
     if (!loading) {
       setFormData({
-        firstName: '',
-        lastName: '',
+        firstname: '',
+        lastname: '',
         email: '',
         phone: '',
         password: '',
@@ -177,8 +182,11 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
           street: '',
           city: '',
           state: '',
-          zipCode: '',
-          country: 'Vietnam'
+          postalCode: '',
+          country: 'Vietnam',
+          ward: '',
+          fullName: '',
+          phone: ''
         }
       });
       setErrors({});
@@ -212,22 +220,21 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
           {/* Basic Information */}
           <div className="form-section">
             <h3 className="form-section-title">Basic Information</h3>
-            <div className="form-grid">
-              <div className="form-group">
+            <div className="form-grid">              <div className="form-group">
                 <label className="form-label">
                   First Name <span className="required">*</span>
                 </label>
                 <input
                   type="text"
-                  name="firstName"
-                  value={formData.firstName}
+                  name="firstname"
+                  value={formData.firstname}
                   onChange={handleInputChange}
-                  className={`form-input ${errors.firstName ? 'error' : ''}`}
+                  className={`form-input ${errors.firstname ? 'error' : ''}`}
                   placeholder="Enter first name"
                   disabled={loading}
                 />
-                {errors.firstName && (
-                  <span className="error-text">{errors.firstName}</span>
+                {errors.firstname && (
+                  <span className="error-text">{errors.firstname}</span>
                 )}
               </div>
 
@@ -237,15 +244,15 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                 </label>
                 <input
                   type="text"
-                  name="lastName"
-                  value={formData.lastName}
+                  name="lastname"
+                  value={formData.lastname}
                   onChange={handleInputChange}
-                  className={`form-input ${errors.lastName ? 'error' : ''}`}
+                  className={`form-input ${errors.lastname ? 'error' : ''}`}
                   placeholder="Enter last name"
                   disabled={loading}
                 />
-                {errors.lastName && (
-                  <span className="error-text">{errors.lastName}</span>
+                {errors.lastname && (
+                  <span className="error-text">{errors.lastname}</span>
                 )}
               </div>
 
@@ -418,17 +425,54 @@ const AddAccountModal = ({ isOpen, onClose, onSuccess }) => {
                   placeholder="Enter state/province"
                   disabled={loading}
                 />
+              </div>              <div className="form-group">
+                <label className="form-label">Postal Code</label>
+                <input
+                  type="text"
+                  name="address.postalCode"
+                  value={formData.address.postalCode}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Enter postal code"
+                  disabled={loading}
+                />
               </div>
 
               <div className="form-group">
-                <label className="form-label">ZIP Code</label>
+                <label className="form-label">Ward</label>
                 <input
                   type="text"
-                  name="address.zipCode"
-                  value={formData.address.zipCode}
+                  name="address.ward"
+                  value={formData.address.ward}
                   onChange={handleInputChange}
                   className="form-input"
-                  placeholder="Enter ZIP code"
+                  placeholder="Enter ward"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  type="text"
+                  name="address.fullName"
+                  value={formData.address.fullName}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Enter full name for address"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Address Phone</label>
+                <input
+                  type="tel"
+                  name="address.phone"
+                  value={formData.address.phone}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Enter phone for address"
                   disabled={loading}
                 />
               </div>

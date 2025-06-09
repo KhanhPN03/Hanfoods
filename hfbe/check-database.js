@@ -3,7 +3,7 @@ const Account = require('./models/Account');
 
 async function checkDatabase() {
   try {
-    await mongoose.connect('mongodb://127.0.0.1:5000/hanfoods');
+    await mongoose.connect('mongodb://127.0.0.1:27017/hanfoods');
     console.log('Connected to MongoDB');
     
     const users = await Account.find({});
