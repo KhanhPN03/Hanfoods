@@ -4,17 +4,22 @@ const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
-const dotenv = require("dotenv");
 const path = require("path");
 const helmet = require("helmet");
 
-// Load environment variables
-dotenv.config();
+// Load centralized configuration
+const config = require("./config/environment");
+
+// Load environment validation
+const { performStartupCheck, startConfigWatcher } = require("./middlewares/environmentValidation");
+
+// Perform startup environment validation
+performStartupCheck();
 
 // Initialize Express app
 const app = express();
 
-// Security middleware - configure helmet with appropriate settings for development
+// Security middleware - configure helmet with appropriate settings
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -22,7 +27,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:5000"],
+      connectSrc: ["'self'", config.frontend.url, config.api.baseUrl],
       fontSrc: ["'self'", "https:", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -34,8 +39,8 @@ app.use(helmet({
 
 // Middleware
 app.use(cors({
-  origin: true, // Allow all origins for development
-  credentials: true,
+  origin: config.cors.origin,
+  credentials: config.cors.credentials,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
@@ -55,16 +60,16 @@ app.use(express.urlencoded({ extended: true }));
 // Session configuration with enhanced security
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: config.auth.sessionSecret,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI || "mongodb://localhost:27017/hanfoods",
+      mongoUrl: config.database.uri,
     }),
     cookie: { 
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      maxAge: config.auth.sessionExpires,
       httpOnly: true, // Prevent XSS attacks
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      secure: config.app.isProduction, // HTTPS only in production
       sameSite: 'lax' // CSRF protection
     },
     name: 'sessionId' // Hide default session name
@@ -79,19 +84,17 @@ app.use(passport.session());
 require('./utils/authenticate');
 
 // Connect to MongoDB with enhanced error handling
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/hanfoods";
-console.log(`Attempting to connect to MongoDB at: ${MONGO_URI}`);
+console.log(`Attempting to connect to MongoDB at: ${config.database.uri}`);
 
 // Create a database connection function to ensure models are registered after connection
 const connectDB = async () => {
-  try {
-    console.log(`Connecting to MongoDB at ${MONGO_URI} with timeout settings...`);
-    await mongoose.connect(MONGO_URI, {
+  try {    console.log(`Connecting to MongoDB at ${config.database.uri} with timeout settings...`);
+    await mongoose.connect(config.database.uri, {
       serverSelectionTimeoutMS: 10000, // 10 second timeout for server selection
       connectTimeoutMS: 15000, // 15 second timeout for initial connection
       socketTimeoutMS: 45000, // 45 second timeout on socket operations
       heartbeatFrequencyMS: 10000, // Check server status every 10 seconds
-    });    console.log("Connected to MongoDB successfully");
+    });console.log("Connected to MongoDB successfully");
 
     // Pre-load all models in correct order to prevent reference issues
     console.log("Pre-loading all models in correct dependency order...");
@@ -140,13 +143,12 @@ const connectDB = async () => {
       codeName: err.codeName,
       errInfo: err.errInfo
     });
-    
-    // Check if MongoDB is running
-    console.log("Please ensure MongoDB is running at " + MONGO_URI.split('/')[2]);
+      // Check if MongoDB is running
+    console.log("Please ensure MongoDB is running at " + config.database.uri.split('/')[2]);
 
     // In production, you might want the server to continue running with fallbacks
     // For development, it's often better to fail fast
-    if (process.env.NODE_ENV !== 'production') {
+    if (!config.app.isProduction) {
       console.error('Exiting application due to database connection failure');
       process.exit(1); // Exit with error code
     }
@@ -285,27 +287,31 @@ const initializeRoutes = () => {
   // Error handling middleware
   app.use((err, req, res, next) => {
     console.error('Error caught in global handler:', err);
-    console.error('Stack trace:', err.stack);
-
-    // Send appropriate error response
+    console.error('Stack trace:', err.stack);    // Send appropriate error response
     const statusCode = err.statusCode || 500;
     res.status(statusCode).json({
       success: false,
       message: err.message || "Something went wrong!",
-      error: process.env.NODE_ENV === 'development' ? err : {}
+      error: config.app.isDevelopment ? err : {}
     });
   });
   // Error handling middleware is now fully initialized
 }
 
 // Start server only after connecting to the database
-const PORT = process.env.PORT || 5000;
-
 // Start the connection process - this should be run only once at the module level
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    app.listen(config.app.port, () => {
+      console.log(`🚀 ${config.app.name} v${config.app.version} running on port ${config.app.port}`);
+      console.log(`🌐 Environment: ${config.app.env}`);
+      console.log(`🔗 API Base URL: ${config.api.baseUrl}`);
+      console.log(`📁 Frontend URL: ${config.frontend.url}`);
+      
+      // Start configuration watcher in development
+      startConfigWatcher();
+      
+      console.log('\n🎉 Server started successfully! Ready to accept requests.\n');
     });
   })
   .catch(err => {

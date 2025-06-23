@@ -9,6 +9,22 @@ const CartItem = ({ item }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
+  // Helper function để lấy URL ảnh chính xác
+  const getImageUrl = (item) => {
+    if (item.image) {
+      if (typeof item.image === 'string') {
+        return item.image;
+      } else if (Array.isArray(item.image) && item.image.length > 0) {
+        return item.image[0];
+      }
+    }
+    if (item.imageUrl && typeof item.imageUrl === 'string') {
+      return item.imageUrl;
+    }
+    // Fallback placeholder
+    return `https://via.placeholder.com/100x100?text=${encodeURIComponent(item.name || 'Sản phẩm')}`;
+  };
+
   const handleQuantityChange = async (newQuantity) => {
     if (!user) {
       addNotification('Bạn cần đăng nhập để thay đổi số lượng sản phẩm!', 'warning');
@@ -41,9 +57,8 @@ const CartItem = ({ item }) => {
 
   return (
     <div className="cart-item">
-      <div className="item-product">
-        <div className="item-image">
-          <img src={item.image || item.imageUrl} alt={item.name} />
+      <div className="item-product">        <div className="item-image">
+          <img src={getImageUrl(item)} alt={item.name} />
         </div>
         <div className="item-details">
           <h3 className="item-name">{item.name}</h3>

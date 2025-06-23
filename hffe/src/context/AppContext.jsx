@@ -424,13 +424,12 @@ export const AppProvider = ({ children }) => {
               price = productData.price;
             } else {
               price = 0;
-            }
-            return {
+            }            return {
               id: productData._id || productData.id,
               name: productData.name,
               price: price, // always a number
               quantity: item.quantity,
-              image: productData.images || productData.thumbnailImage || productData.imageUrl || (Array.isArray(productData.images) && productData.images.length > 0 ? productData.images[0] : `https://via.placeholder.com/100x100?text=${encodeURIComponent(productData.name)}`)
+              image: getImageUrlFromProductData(productData)
             };
           });
           setCart(transformedCart);
@@ -464,13 +463,12 @@ export const AppProvider = ({ children }) => {
               price = productData.price;
             } else {
               price = 0;
-            }
-            return {
+            }            return {
               id: productData._id || productData.id,
               name: productData.name,
               price: price,
               quantity: item.quantity,
-              image: productData.images || productData.thumbnailImage || productData.imageUrl || (Array.isArray(productData.images) && productData.images.length > 0 ? productData.images[0] : `https://via.placeholder.com/100x100?text=${encodeURIComponent(productData.name)}`)
+              image: getImageUrlFromProductData(productData)
             };
           });
           setCart(transformedCart);
@@ -505,13 +503,12 @@ export const AppProvider = ({ children }) => {
               price = productData.price;
             } else {
               price = 0;
-            }
-            return {
+            }            return {
               id: productData._id || productData.id,
               name: productData.name,
               price: price,
               quantity: item.quantity,
-              image: productData.images || productData.thumbnailImage || productData.imageUrl || (Array.isArray(productData.images) && productData.images.length > 0 ? productData.images[0] : `https://via.placeholder.com/100x100?text=${encodeURIComponent(productData.name)}`)
+              image: getImageUrlFromProductData(productData)
             };
           });
           setCart(transformedCart);
@@ -619,6 +616,21 @@ export const AppProvider = ({ children }) => {
     cacheProductDetail,
     getCachedProductDetail,
     isProductCacheValid,
+  };
+
+  // Helper function để xử lý URL ảnh từ product data
+  const getImageUrlFromProductData = (productData) => {
+    if (productData.thumbnailImage && typeof productData.thumbnailImage === 'string') {
+      return productData.thumbnailImage;
+    } else if (Array.isArray(productData.images) && productData.images.length > 0) {
+      return productData.images[0];
+    } else if (typeof productData.images === 'string') {
+      return productData.images;
+    } else if (productData.imageUrl && typeof productData.imageUrl === 'string') {
+      return productData.imageUrl;
+    } else {
+      return `https://via.placeholder.com/100x100?text=${encodeURIComponent(productData.name || 'Sản phẩm')}`;
+    }
   };
 
   return (

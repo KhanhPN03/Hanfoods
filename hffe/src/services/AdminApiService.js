@@ -1,12 +1,11 @@
 import axios from 'axios';
+import config from '../config/environment';
+import { API_ENDPOINTS, getApiHeaders } from '../config/api';
 
-// Base API configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-// Create axios instance with default config
+// Create axios instance with centralized configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+  baseURL: config.api.baseUrl,
+  timeout: config.api.timeout,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -46,11 +45,10 @@ api.interceptors.response.use(
 class AdminApiService {
   // Expose the axios instance for direct API calls if needed
   static api = api;
-  
-  // Dashboard APIs
+    // Dashboard APIs
   async getDashboardStats() {
     try {
-      const response = await api.get('/api/admin/dashboard/stats');
+      const response = await api.get(API_ENDPOINTS.ADMIN.DASHBOARD.STATS);
       return response.data.data; // Return the data property from backend response
     } catch (error) {
       throw this.handleError(error);
@@ -59,12 +57,12 @@ class AdminApiService {
 
   async getRecentOrders(limit = 10) {
     try {
-      const response = await api.get(`/api/admin/dashboard/recent-orders?limit=${limit}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN.DASHBOARD.RECENT_ORDERS}?limit=${limit}`);
       return response.data; // Backend returns { success: true, orders: [...] }
     } catch (error) {
       throw this.handleError(error);
     }
-  }  async getRevenueAnalytics(period = '30d') {
+  }async getRevenueAnalytics(period = '30d') {
     try {
       const response = await api.get(`/api/admin/orders/revenue?period=${period}`);
       return response.data;

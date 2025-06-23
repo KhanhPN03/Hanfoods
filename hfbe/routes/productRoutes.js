@@ -5,9 +5,9 @@ const ProductController = require('../controllers/ProductController');
 const { isAuthenticated, isAdmin } = require('../middlewares/authMiddleware');
 const UploadController = require('../controllers/UploadController');
 
-// Instantiate controllers
-const productController = new ProductController();
-const uploadController = new UploadController();
+// Controllers are already instantiated in their respective files
+const productController = ProductController;
+const uploadController = UploadController;
 
 // Public routes
 router.get('/', (req, res) => productController.getAllProducts(req, res));

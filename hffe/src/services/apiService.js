@@ -1,16 +1,14 @@
 import axios from 'axios';
+import config from '../config/environment';
 
-// Base API URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-// Create axios instance
+// Create axios instance with centralized configuration
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: config.api.baseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Enable cookies for sessions
-  timeout: 15000, // 15-second timeout
+  timeout: config.api.timeout,
 });
 
 // Request interceptor to include auth token
@@ -127,10 +125,9 @@ export const authAPI = {
         message: res.data.message,
       },
     })),
-
   googleLogin: () => {
     // Redirect to Google OAuth endpoint
-    window.location.href = `${API_URL}/api/auth/google`;
+    window.location.href = `${config.api.baseUrl}/api/auth/google`;
   },
 
   logout: () =>
