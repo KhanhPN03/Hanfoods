@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, Eye, Truck, X, Check, Clock, RefreshCw, FileText, Download } from 'lucide-react';
 import AdminTable from '../components/AdminTable';
 import StatCard from '../components/StatCard';
+import AdminApiService from '../../../services/AdminApiService';
 import '../css/OrderManagement.css';
 
 const OrderManagement = () => {
@@ -25,7 +26,6 @@ const OrderManagement = () => {
     cancelled: { label: 'Cancelled', color: '#ef4444', icon: X }
   };
 
-  // Mock data - replace with API calls
   useEffect(() => {
     fetchOrders();
     fetchOrderStats();
@@ -34,45 +34,53 @@ const OrderManagement = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      // Replace with actual API call
-      const mockOrders = [
-        {
-          id: 1,
-          orderNumber: 'ORD-2024-001',
-          customer: 'John Doe',
-          email: 'john@example.com',
-          phone: '+1234567890',
-          items: [
-            { name: 'iPhone 15 Pro', quantity: 1, price: 999.00 },
-            { name: 'AirPods Pro', quantity: 1, price: 249.00 }
-          ],
-          total: 1248.00,
-          status: 'pending',
-          paymentStatus: 'paid',
-          shippingAddress: '123 Main St, City, State 12345',
-          createdAt: '2024-01-15T10:30:00Z',
-          updatedAt: '2024-01-15T10:30:00Z'
-        },
-        {
-          id: 2,
-          orderNumber: 'ORD-2024-002',
-          customer: 'Jane Smith',
-          email: 'jane@example.com',
-          phone: '+0987654321',
-          items: [
-            { name: 'MacBook Air M2', quantity: 1, price: 1199.00 }
-          ],
-          total: 1199.00,
-          status: 'shipping',
-          paymentStatus: 'paid',
-          shippingAddress: '456 Oak Ave, Town, State 67890',
-          createdAt: '2024-01-14T14:15:00Z',
-          updatedAt: '2024-01-15T09:20:00Z'
-        }
-      ];
-      setOrders(mockOrders);
+      const response = await AdminApiService.getAllOrders();
+      if (response && response.success && response.orders) {
+        setOrders(response.orders);
+      } else {
+        // Fallback to mock data if API fails
+        const mockOrders = [
+          {
+            id: 1,
+            orderNumber: 'ORD-2024-001',
+            customer: 'John Doe',
+            email: 'john@example.com',
+            phone: '+1234567890',
+            items: [
+              { name: 'iPhone 15 Pro', quantity: 1, price: 999.00 },
+              { name: 'AirPods Pro', quantity: 1, price: 249.00 }
+            ],
+            total: 1248.00,
+            status: 'pending',
+            paymentStatus: 'paid',
+            shippingAddress: '123 Main St, City, State 12345',
+            createdAt: '2024-01-15T10:30:00Z',
+            updatedAt: '2024-01-15T10:30:00Z'
+          },
+          {
+            id: 2,
+            orderNumber: 'ORD-2024-002',
+            customer: 'Jane Smith',
+            email: 'jane@example.com',
+            phone: '+0987654321',
+            items: [
+              { name: 'MacBook Air M2', quantity: 1, price: 1199.00 }
+            ],
+            total: 1199.00,
+            status: 'shipping',
+            paymentStatus: 'paid',
+            shippingAddress: '456 Oak Ave, Town, State 67890',
+            createdAt: '2024-01-14T14:15:00Z',
+            updatedAt: '2024-01-15T09:20:00Z'
+          }
+        ];
+        setOrders(mockOrders);
+        console.warn('Using mock data for orders');
+      }
     } catch (error) {
       console.error('Error fetching orders:', error);
+      // Fallback to empty array or mock data
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -80,33 +88,57 @@ const OrderManagement = () => {
 
   const fetchOrderStats = async () => {
     try {
-      // Replace with actual API call
-      setStats({
-        totalOrders: 156,
-        pendingOrders: 23,
-        shippingOrders: 15,
-        completedOrders: 118
-      });
+      const response = await AdminApiService.getOrderStats();
+      if (response && response.success && response.stats) {
+        setStats({
+          totalOrders: response.stats.totalOrders || 0,
+          pendingOrders: response.stats.pendingOrders || 0,
+          shippingOrders: response.stats.shippingOrders || 0,
+          completedOrders: response.stats.completedOrders || 0
+        });
+      } else {
+        // Fallback to mock stats
+        setStats({
+          totalOrders: 156,
+          pendingOrders: 23,
+          shippingOrders: 15,
+          completedOrders: 118
+        });
+        console.warn('Using mock data for order stats');
+      }
     } catch (error) {
       console.error('Error fetching order stats:', error);
+      // Fallback to mock stats
+      setStats({
+        totalOrders: 0,
+        pendingOrders: 0,
+        shippingOrders: 0,
+        completedOrders: 0
+      });
     }
   };
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
-      // Replace with actual API call
-      setOrders(orders.map(order => 
-        order.id === orderId 
-          ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
-          : order
-      ));
-      
-      if (selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder(prev => ({ ...prev, status: newStatus, updatedAt: new Date().toISOString() }));
+      const response = await AdminApiService.updateOrderStatus(orderId, newStatus);
+      if (response && response.success) {
+        // Update local state
+        setOrders(orders.map(order => 
+          order.id === orderId 
+            ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
+            : order
+        ));
+        
+        // Update selected order if it's currently viewed
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder(prev => ({ ...prev, status: newStatus, updatedAt: new Date().toISOString() }));
+        }
+        
+        // Refresh stats after status update
+        await fetchOrderStats();
+      } else {
+        console.error('Failed to update order status');
       }
-      
-      // Refresh stats
-      fetchOrderStats();
     } catch (error) {
       console.error('Error updating order status:', error);
     }
@@ -201,7 +233,8 @@ const OrderManagement = () => {
       selector: row => row.createdAt,
       sortable: true,
       cell: row => formatDate(row.createdAt)
-    },    {
+    },
+    {
       name: 'Actions',
       cell: row => (
         <div className="action-buttons">

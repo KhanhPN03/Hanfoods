@@ -124,6 +124,56 @@ const ImprovedAccountManagement = () => {
     fetchStats(); // Refresh the stats
   };
 
+  const handleDeleteUser = async (user) => {
+    try {
+      setLoading(true);
+      
+      // First check if user has existing orders
+      const orderCheck = await AdminApiService.checkUserOrders(user._id);
+      
+      if (orderCheck.success && orderCheck.data.hasOrders) {
+        const { totalOrders, activeOrders, canDelete, orders } = orderCheck.data;
+        
+        if (!canDelete) {
+          // User has active orders, show detailed warning
+          const activeOrdersList = orders
+            .filter(order => ['pending', 'processing', 'shipped'].includes(order.status))
+            .map(order => `- Đơn hàng ${order.orderId} (${order.status}) - ${order.totalAmount?.toLocaleString('vi-VN')}đ`)
+            .join('\n');
+            
+          alert(
+            `Không thể xóa tài khoản "${user.firstname} ${user.lastname}" vì có ${activeOrders} đơn hàng đang hoạt động:\n\n${activeOrdersList}\n\nVui lòng hoàn thành hoặc hủy các đơn hàng này trước khi xóa tài khoản.`
+          );
+          setLoading(false);
+          return;
+        } else if (totalOrders > 0) {
+          // User has completed orders, ask for confirmation
+          const confirmMessage = `Tài khoản "${user.firstname} ${user.lastname}" đã có ${totalOrders} đơn hàng trong lịch sử.\n\nViệc xóa tài khoản sẽ không ảnh hưởng đến các đơn hàng đã hoàn thành, nhưng tài khoản sẽ không thể đăng nhập.\n\nBạn có chắc chắn muốn xóa?`;
+          
+          if (!window.confirm(confirmMessage)) {
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
+      // Proceed with deletion if no active orders or user confirmed
+      const finalConfirmation = `Bạn có chắc chắn muốn xóa tài khoản "${user.firstname} ${user.lastname}"?\n\nHành động này không thể hoàn tác.`;
+      
+      if (window.confirm(finalConfirmation)) {
+        await AdminApiService.deleteUser(user._id);
+        await fetchUsers(); // Refresh the users list
+        await fetchStats(); // Refresh the stats
+        alert('Xóa tài khoản thành công!');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Có lỗi xảy ra khi xóa tài khoản: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const fullName = `${user.firstname} ${user.lastname}`.toLowerCase();
     const searchMatch = fullName.includes(filters.search.toLowerCase()) ||
@@ -299,7 +349,7 @@ const ImprovedAccountManagement = () => {
                     <button className="btn-action btn-edit" title="Chỉnh sửa">
                       <Edit3 size={14} />
                     </button>
-                    <button className="btn-action btn-delete" title="Xóa">
+                    <button className="btn-action btn-delete" title="Xóa" onClick={() => handleDeleteUser(user)}>
                       <Trash2 size={14} />
                     </button>
                   </div>

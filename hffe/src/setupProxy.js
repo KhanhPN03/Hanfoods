@@ -4,13 +4,20 @@
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
+// Load environment configuration
+require('dotenv').config();
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const FRONTEND_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+
 module.exports = function(app) {
   // Proxy API requests to the backend server
   app.use(
     '/api',
     createProxyMiddleware({
-      target: 'http://localhost:5000',
+      target: API_URL,
       changeOrigin: true,
+      logLevel: process.env.REACT_APP_DEBUG === 'true' ? 'debug' : 'warn',
     })
   );
 
@@ -18,7 +25,7 @@ module.exports = function(app) {
   app.use(
     '/ws',
     createProxyMiddleware({
-      target: 'ws://localhost:3000',
+      target: `ws://${FRONTEND_URL.replace('http://', '').replace('https://', '')}`,
       ws: true,
       changeOrigin: true,
     })

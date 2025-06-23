@@ -1,4 +1,4 @@
-import { authAPI, cartAPI, orderAPI, wishlistAPI } from './apiService';
+import { authAPI, cartAPI, orderAPI } from './apiService';
 
 class UserService {
   // Authentication methods
@@ -127,13 +127,26 @@ class UserService {
             price = productData.price;
           } else {
             price = 0;
+          }          // Xử lý URL ảnh một cách chính xác
+          let imageUrl = '';
+          if (productData.thumbnailImage && typeof productData.thumbnailImage === 'string') {
+            imageUrl = productData.thumbnailImage;
+          } else if (Array.isArray(productData.images) && productData.images.length > 0) {
+            imageUrl = productData.images[0];
+          } else if (typeof productData.images === 'string') {
+            imageUrl = productData.images;
+          } else if (productData.imageUrl && typeof productData.imageUrl === 'string') {
+            imageUrl = productData.imageUrl;
+          } else {
+            imageUrl = `https://via.placeholder.com/100x100?text=${encodeURIComponent(productData.name || 'Sản phẩm')}`;
           }
+          
           return {
             id: productData._id || productData.id,
             name: productData.name,
             price: price, // luôn là số
             quantity: item.quantity,
-            image: productData.images || productData.thumbnailImage || productData.imageUrl || (Array.isArray(productData.images) && productData.images.length > 0 ? productData.images[0] : `https://via.placeholder.com/100x100?text=${encodeURIComponent(productData.name)}`)
+            image: imageUrl
           };
         });
       }

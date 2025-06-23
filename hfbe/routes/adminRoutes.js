@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const AdminController = require('../controllers/AdminController');
+const adminController = require('../controllers/AdminController');
+const orderController = require('../controllers/OrderController');
+const productController = require('../controllers/ProductController');
 const { authenticate, requireAdmin } = require('../middlewares/authMiddleware');
-
-// Create instance
-const adminController = new AdminController();
 
 // Apply authentication and admin middleware to all routes
 router.use(authenticate);
@@ -26,9 +25,19 @@ router.post('/users', (req, res) => adminController.createUser(req, res));
 router.get('/users/stats', (req, res) => adminController.getUserStats(req, res));
 router.get('/users/export', (req, res) => adminController.exportUsers(req, res));
 router.get('/users/:id', (req, res) => adminController.getUserById(req, res));
+router.get('/users/:id/orders/check', (req, res) => adminController.checkUserOrders(req, res));
 router.patch('/users/:id/status', (req, res) => adminController.updateUserStatus(req, res));
 router.patch('/users/:id/role', (req, res) => adminController.updateUserRole(req, res));
 router.delete('/users/:id', (req, res) => adminController.deleteUser(req, res));
+
+// Order management routes
+router.get('/orders', (req, res) => orderController.getAllOrders(req, res));
+router.get('/orders/stats', (req, res) => orderController.getOrderStats(req, res));
+router.patch('/orders/:id/status', (req, res) => orderController.updateOrderStatus(req, res));
+router.get('/orders/:id', (req, res) => orderController.getOrderById(req, res));
+
+// Product management routes  
+router.get('/products/stats', (req, res) => productController.getProductStats(req, res));
 
 // Settings management routes
 router.get('/settings', (req, res) => adminController.getSettings(req, res));

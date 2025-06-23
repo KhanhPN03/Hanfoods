@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Upload, Plus, Minus } from 'lucide-react';
 import AdminApiService from '../../../services/AdminApiService';
 import '../css/Modal.css';
 
-const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, setFormData] = useState({
+const EditProductModal = ({ isOpen, onClose, onSuccess, product }) => {
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
     category: '',
@@ -12,16 +13,15 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
     stock: '',
     sku: '',
     tags: [],
-    thumbnailImage: null,
     images: [],
     isActive: true,
     isFeatured: false,
     specifications: [{ name: '', value: '' }]
   });
-    const [loading, setLoading] = useState(false);
+  
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [newTag, setNewTag] = useState('');
-  const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [imagePreview, setImagePreview] = useState([]);
 
   // Predefined categories
@@ -33,6 +33,33 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
     'Combo',
     'Khác'
   ];
+
+  // Initialize form with product data
+  useEffect(() => {
+    if (product && isOpen) {
+      setFormData({
+        name: product.name || '',
+        description: product.description || '',
+        category: product.category || '',
+        price: product.price || '',
+        originalPrice: product.originalPrice || '',
+        stock: product.stock || '',
+        sku: product.sku || '',
+        tags: product.tags || [],
+        images: [],
+        isActive: product.isActive !== undefined ? product.isActive : true,
+        isFeatured: product.isFeatured || false,
+        specifications: product.specifications && product.specifications.length > 0 
+          ? product.specifications 
+          : [{ name: '', value: '' }]
+      });
+      
+      // Set existing images as preview
+      if (product.images && product.images.length > 0) {
+        setImagePreview(product.images);
+      }
+    }
+  }, [product, isOpen]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -76,27 +103,40 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
       specifications: [...prev.specifications, { name: '', value: '' }]
     }));
   };
+
   const removeSpecification = (index) => {
     setFormData(prev => ({
       ...prev,
       specifications: prev.specifications.filter((_, i) => i !== index)
     }));
   };
-  const removeImage = (index, type = 'additional') => {
-    if (type === 'thumbnail') {
-      setFormData(prev => ({
-        ...prev,
-        thumbnailImage: null
-      }));
-      setThumbnailPreview(null);
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        images: prev.images.filter((_, i) => i !== index)
-      }));
-      setImagePreview(prev => prev.filter((_, i) => i !== index));
-    }
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    
+    // Preview images
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(prev => [...prev, event.target.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...files]
+    }));
   };
+
+  const removeImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+    setImagePreview(prev => prev.filter((_, i) => i !== index));
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -105,7 +145,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
     if (!formData.category) newErrors.category = 'Danh mục là bắt buộc';
     if (!formData.price || formData.price <= 0) newErrors.price = 'Giá bán phải lớn hơn 0';
     if (!formData.stock || formData.stock < 0) newErrors.stock = 'Số lượng tồn kho không được âm';
-    if (!formData.thumbnailImage) newErrors.thumbnailImage = 'Hình ảnh đại diện là bắt buộc';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -115,7 +154,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
     e.preventDefault();
     
     if (!validateForm()) return;
-
+    
     setLoading(true);
     try {
       // Create FormData for file upload
@@ -131,46 +170,29 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
       submitData.append('sku', formData.sku);
       submitData.append('isActive', formData.isActive);
       submitData.append('isFeatured', formData.isFeatured);
-        // Add arrays as JSON strings
+      
+      // Add arrays as JSON strings
       submitData.append('tags', JSON.stringify(formData.tags));
       submitData.append('specifications', JSON.stringify(formData.specifications.filter(spec => spec.name && spec.value)));
       
-      // Add thumbnail image (required)
-      if (formData.thumbnailImage) {
-        submitData.append('thumbnailImage', formData.thumbnailImage);
-      }
-      
-      // Add additional images
+      // Add new images only
       formData.images.forEach((image, index) => {
         submitData.append('images', image);
       });
 
-      await AdminApiService.createProduct(submitData);
+      // Keep existing images
+      if (product.images && product.images.length > 0) {
+        submitData.append('existingImages', JSON.stringify(product.images));
+      }
+
+      await AdminApiService.updateProduct(product._id, submitData);
       
       onSuccess?.();
       onClose();
-        // Reset form
-      setFormData({
-        name: '',
-        description: '',
-        category: '',
-        price: '',
-        originalPrice: '',
-        stock: '',
-        sku: '',
-        tags: [],
-        thumbnailImage: null,
-        images: [],
-        isActive: true,
-        isFeatured: false,
-        specifications: [{ name: '', value: '' }]
-      });
-      setThumbnailPreview(null);
-      setImagePreview([]);
       
     } catch (error) {
-      console.error('Error creating product:', error);
-      setErrors({ submit: error.message || 'Có lỗi xảy ra khi tạo sản phẩm' });
+      console.error('Error updating product:', error);
+      setErrors({ submit: error.message || 'Có lỗi xảy ra khi cập nhật sản phẩm' });
     } finally {
       setLoading(false);
     }
@@ -182,7 +204,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content large" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Thêm sản phẩm mới</h2>
+          <h2>Chỉnh sửa sản phẩm</h2>
           <button className="close-btn" onClick={onClose}>
             <X size={20} />
           </button>
@@ -222,7 +244,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
                   />
                   {errors.description && <span className="error-text">{errors.description}</span>}
                 </div>
-
+                
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="category">Danh mục *</label>
@@ -305,104 +327,44 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
                     {errors.stock && <span className="error-text">{errors.stock}</span>}
                   </div>
                 </div>
-              </div>              {/* Images */}
+              </div>
+
+              {/* Images */}
               <div className="form-section">
-                <h3>Hình ảnh sản phẩm</h3>
+                <h3>Hình ảnh</h3>
                 
-                {/* Thumbnail Image */}
-                <div className="form-group">
-                  <label>Hình ảnh đại diện *</label>
-                  <div className="upload-area">
-                    <input
-                      type="file"
-                      id="thumbnailImage"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          setFormData(prev => ({ ...prev, thumbnailImage: file }));
-                          const reader = new FileReader();
-                          reader.onload = (event) => setThumbnailPreview(event.target.result);
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      style={{ display: 'none' }}
-                    />
-                    <label htmlFor="thumbnailImage" className="upload-label">
-                      <Upload size={24} />
-                      <span>Chọn hình ảnh đại diện</span>
-                      <small>Hỗ trợ: JPG, PNG, GIF (tối đa 5MB)</small>
-                    </label>
-                  </div>
-                  {errors.thumbnailImage && <span className="error-text">{errors.thumbnailImage}</span>}
-                  
-                  {thumbnailPreview && (
-                    <div className="image-preview-item" style={{ marginTop: '10px', width: '150px' }}>
-                      <img src={thumbnailPreview} alt="Thumbnail preview" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }} />
-                      <button
-                        type="button"
-                        className="remove-image-btn"
-                        onClick={() => removeImage(0, 'thumbnail')}
-                        style={{ position: 'absolute', top: '5px', right: '5px' }}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  )}
+                <div className="upload-area">
+                  <input
+                    type="file"
+                    id="images"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="images" className="upload-label">
+                    <Upload size={24} />
+                    <span>Chọn hình ảnh hoặc kéo thả vào đây</span>
+                    <small>Hỗ trợ: JPG, PNG, GIF (tối đa 5MB mỗi file)</small>
+                  </label>
                 </div>
 
-                {/* Additional Images */}
-                <div className="form-group">
-                  <label>Hình ảnh bổ sung (tùy chọn)</label>
-                  <div className="upload-area">
-                    <input
-                      type="file"
-                      id="additionalImages"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files);
-                        if (files.length > 0) {
-                          setFormData(prev => ({
-                            ...prev,
-                            images: [...prev.images, ...files]
-                          }));
-                          
-                          files.forEach(file => {
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                              setImagePreview(prev => [...prev, event.target.result]);
-                            };
-                            reader.readAsDataURL(file);
-                          });
-                        }
-                      }}
-                      style={{ display: 'none' }}
-                    />
-                    <label htmlFor="additionalImages" className="upload-label">
-                      <Upload size={24} />
-                      <span>Chọn hình ảnh bổ sung</span>
-                      <small>Có thể chọn nhiều hình (tối đa 5MB mỗi file)</small>
-                    </label>
+                {imagePreview.length > 0 && (
+                  <div className="image-preview-grid">
+                    {imagePreview.map((preview, index) => (
+                      <div key={index} className="image-preview-item">
+                        <img src={preview} alt={`Preview ${index + 1}`} />
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-
-                  {imagePreview.length > 0 && (
-                    <div className="image-preview-grid" style={{ marginTop: '10px' }}>
-                      {imagePreview.map((preview, index) => (
-                        <div key={index} className="image-preview-item">
-                          <img src={preview} alt={`Preview ${index + 1}`} />
-                          <button
-                            type="button"
-                            className="remove-image-btn"
-                            onClick={() => removeImage(index, 'additional')}
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
 
               {/* Tags */}
@@ -520,7 +482,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
               Hủy
             </button>
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Đang tạo...' : 'Tạo sản phẩm'}
+              {loading ? 'Đang cập nhật...' : 'Cập nhật sản phẩm'}
             </button>
           </div>
         </form>
@@ -529,4 +491,4 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {  const [formData, 
   );
 };
 
-export default AddProductModal;
+export default EditProductModal;

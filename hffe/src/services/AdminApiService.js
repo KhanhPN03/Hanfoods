@@ -1,12 +1,11 @@
 import axios from 'axios';
+import config from '../config/environment';
+import { API_ENDPOINTS, getApiHeaders } from '../config/api';
 
-// Base API configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-// Create axios instance with default config
+// Create axios instance with centralized configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+  baseURL: config.api.baseUrl,
+  timeout: config.api.timeout,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -46,11 +45,10 @@ api.interceptors.response.use(
 class AdminApiService {
   // Expose the axios instance for direct API calls if needed
   static api = api;
-  
-  // Dashboard APIs
+    // Dashboard APIs
   async getDashboardStats() {
     try {
-      const response = await api.get('/api/admin/dashboard/stats');
+      const response = await api.get(API_ENDPOINTS.ADMIN.DASHBOARD.STATS);
       return response.data.data; // Return the data property from backend response
     } catch (error) {
       throw this.handleError(error);
@@ -59,15 +57,14 @@ class AdminApiService {
 
   async getRecentOrders(limit = 10) {
     try {
-      const response = await api.get(`/api/admin/dashboard/recent-orders?limit=${limit}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN.DASHBOARD.RECENT_ORDERS}?limit=${limit}`);
       return response.data; // Backend returns { success: true, orders: [...] }
     } catch (error) {
       throw this.handleError(error);
     }
-  }
-  async getRevenueAnalytics(period = '30d') {
+  }async getRevenueAnalytics(period = '30d') {
     try {
-      const response = await api.get(`/api/orders/admin/revenue?period=${period}`);
+      const response = await api.get(`/api/admin/orders/revenue?period=${period}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -84,11 +81,10 @@ class AdminApiService {
       throw this.handleError(error);
     }
   }
-
   async getProductStats() {
     try {
-      const response = await api.get('/api/products/admin/stats');
-      return response.data;
+      const response = await api.get('/api/admin/products/stats');
+      return response.data.stats || response.data;
     } catch (error) {
       // If the endpoint doesn't exist, calculate stats from products
       try {
@@ -129,11 +125,21 @@ class AdminApiService {
       throw this.handleError(error);
     }
   }
-
   async createProduct(productData) {
     try {
-      const response = await api.post('/api/products', productData);
-      return response.data;
+      // Check if productData is FormData (file upload)
+      if (productData instanceof FormData) {
+        const response = await api.post('/api/products/with-images', productData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data;
+      } else {
+        // Traditional JSON data
+        const response = await api.post('/api/products', productData);
+        return response.data;
+      }
     } catch (error) {
       throw this.handleError(error);
     }
@@ -151,6 +157,16 @@ class AdminApiService {
   async deleteProduct(productId) {
     try {
       const response = await api.delete(`/api/products/${productId}`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // Check if product has existing orders before deletion
+  async checkProductOrders(productId) {
+    try {
+      const response = await api.get(`/api/products/${productId}/orders/check`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -188,27 +204,24 @@ class AdminApiService {
   }
   // Order Management APIs
   async getAllOrders(params = {}) {
-    try {
-      const queryString = new URLSearchParams(params).toString();
-      const response = await api.get(`/api/orders${queryString ? `?${queryString}` : ''}`);
+    try {    const queryString = new URLSearchParams(params).toString();
+      const response = await api.get(`/api/admin/orders${queryString ? `?${queryString}` : ''}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
-
   async getOrderById(orderId) {
     try {
-      const response = await api.get(`/api/orders/${orderId}`);
+      const response = await api.get(`/api/admin/orders/${orderId}`);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
-
   async updateOrderStatus(orderId, status, notes = '') {
     try {
-      const response = await api.put(`/api/orders/admin/status/${orderId}`, {
+      const response = await api.patch(`/api/admin/orders/${orderId}/status`, {
         status,
         notes
       });
@@ -216,10 +229,9 @@ class AdminApiService {
     } catch (error) {
       throw this.handleError(error);
     }
-  }
-  async getOrderStats() {
+  }  async getOrderStats() {
     try {
-      const response = await api.get('/api/orders/admin/stats');
+      const response = await api.get('/api/admin/orders/stats');
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -282,10 +294,19 @@ class AdminApiService {
     }
   }
 
+  // Check if user has existing orders before deletion
+  async checkUserOrders(userId) {
+    try {
+      const response = await api.get(`/api/admin/users/${userId}/orders/check`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
   async getUserStats(timeRange = '30d') {
     try {
       const response = await api.get(`/api/admin/users/stats?timeRange=${timeRange}`);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -478,7 +499,7 @@ class AdminApiService {
   async exportOrders(filters = {}, format = 'csv') {
     try {
       const queryString = new URLSearchParams({ ...filters, format }).toString();
-      const response = await api.get(`/api/orders/admin/export?${queryString}`, {
+      const response = await api.get(`/api/admin/orders/export?${queryString}`, {
         responseType: 'blob'
       });
       return response;

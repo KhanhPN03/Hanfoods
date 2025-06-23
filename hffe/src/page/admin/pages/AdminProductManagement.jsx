@@ -10,19 +10,23 @@ import {
 } from 'lucide-react';
 import AdminApiService from '../../../services/AdminApiService';
 import AddProductModal from '../components/AddProductModal';
+import EditProductModal from '../components/EditProductModal';
+import ViewProductModal from '../components/ViewProductModal';
 import '../css/AdminTable.css';
 
-const AdminProductManagement = () => {
-  const [products, setProducts] = useState([]);
+const AdminProductManagement = () => {  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [stats, setStats] = useState({
     totalProducts: 0,
     activeProducts: 0,
     outOfStock: 0,
     totalValue: 0
-  });  const [filters, setFilters] = useState({
+  });const [filters, setFilters] = useState({
     search: '',
     category: '',
     status: ''
@@ -100,14 +104,88 @@ const AdminProductManagement = () => {
   };
   const handleSearch = (e) => {
     setFilters({ ...filters, search: e.target.value });
-  };
-  const handleAddProduct = () => {
+  };  const handleAddProduct = () => {
     setShowAddModal(true);
+  };
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setShowEditModal(true);
+  };
+  const handleDeleteProduct = async (product) => {
+    try {
+      setLoading(true);
+      
+      // First check if product has existing orders
+      const orderCheck = await AdminApiService.checkProductOrders(product._id);
+      
+      if (orderCheck.success && orderCheck.data.hasOrders) {
+        const { totalOrders, activeOrders, canDelete, orders } = orderCheck.data;
+        
+        if (!canDelete) {
+          // Product has active orders, show detailed warning
+          const activeOrdersList = orders
+            .filter(order => ['pending', 'processing', 'shipped'].includes(order.status))
+            .map(order => `- Đơn hàng ${order.orderId} (${order.status})`)
+            .join('\n');
+            
+          alert(
+            `Không thể xóa sản phẩm "${product.name}" vì có ${activeOrders} đơn hàng đang hoạt động:\n\n${activeOrdersList}\n\nVui lòng hoàn thành hoặc hủy các đơn hàng này trước khi xóa sản phẩm.`
+          );
+          setLoading(false);
+          return;
+        } else if (totalOrders > 0) {
+          // Product has completed orders, ask for confirmation
+          const confirmMessage = `Sản phẩm "${product.name}" đã có ${totalOrders} đơn hàng trong lịch sử.\n\nViệc xóa sản phẩm sẽ không ảnh hưởng đến các đơn hàng đã hoàn thành, nhưng sản phẩm sẽ không thể được đặt hàng mới.\n\nBạn có chắc chắn muốn xóa?`;
+          
+          if (!window.confirm(confirmMessage)) {
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
+      // Proceed with deletion if no active orders or user confirmed
+      const finalConfirmation = `Bạn có chắc chắn muốn xóa sản phẩm "${product.name}"?\n\nHành động này không thể hoàn tác.`;
+      
+      if (window.confirm(finalConfirmation)) {
+        await AdminApiService.deleteProduct(product._id);
+        await fetchProducts(); // Refresh the products list
+        await fetchStats(); // Refresh the stats
+        alert('Xóa sản phẩm thành công!');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Có lỗi xảy ra khi xóa sản phẩm: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewProduct = (product) => {
+    setSelectedProduct(product);
+    setShowViewModal(true);
   };
 
   const handleProductAdded = () => {
     fetchProducts(); // Refresh the products list
     fetchStats(); // Refresh the stats
+  };
+
+  const handleProductUpdated = () => {
+    fetchProducts(); // Refresh the products list
+    fetchStats(); // Refresh the stats
+    setShowEditModal(false);
+    setSelectedProduct(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedProduct(null);
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setSelectedProduct(null);
   };
 
   const filteredProducts = products.filter(product => {
@@ -215,8 +293,7 @@ const AdminProductManagement = () => {
               <th>Trạng thái</th>
               <th>Thao tác</th>
             </tr>
-          </thead>
-          <tbody>
+          </thead>          <tbody>
             {filteredProducts.map(product => (
               <tr key={product._id}>
                 <td>
@@ -238,13 +315,25 @@ const AdminProductManagement = () => {
                 </td>
                 <td>
                   <div className="action-buttons">
-                    <button className="btn-action btn-view" title="Xem chi tiết">
+                    <button 
+                      className="btn-action btn-view" 
+                      title="Xem chi tiết"
+                      onClick={() => handleViewProduct(product)}
+                    >
                       <Eye size={14} />
                     </button>
-                    <button className="btn-action btn-edit" title="Chỉnh sửa">
+                    <button 
+                      className="btn-action btn-edit" 
+                      title="Chỉnh sửa"
+                      onClick={() => handleEditProduct(product)}
+                    >
                       <Edit3 size={14} />
                     </button>
-                    <button className="btn-action btn-delete" title="Xóa">
+                    <button 
+                      className="btn-action btn-delete" 
+                      title="Xóa"
+                      onClick={() => handleDeleteProduct(product)}
+                    >
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -259,13 +348,26 @@ const AdminProductManagement = () => {
             <p>Chưa có sản phẩm nào trong hệ thống hoặc không có sản phẩm nào phù hợp với tìm kiếm.</p>
           </div>
         )}
-      </div>
-
-      {/* Add Product Modal */}
+      </div>      {/* Add Product Modal */}
       <AddProductModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={handleProductAdded}
+      />
+
+      {/* Edit Product Modal */}
+      <EditProductModal
+        isVisible={showEditModal}
+        onClose={handleCloseEditModal}
+        product={selectedProduct}
+        onSuccess={handleProductUpdated}
+      />
+
+      {/* View Product Modal */}
+      <ViewProductModal
+        isVisible={showViewModal}
+        onClose={handleCloseViewModal}
+        product={selectedProduct}
       />
     </div>
   );

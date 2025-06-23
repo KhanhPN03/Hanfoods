@@ -82,13 +82,14 @@ class OrderService {
           console.error('Discount error:', error.message);
         }
       }
-      
-      // Generate order ID
+        // Generate order ID and order code
       const orderId = 'ORD-' + uuidv4().substring(0, 8).toUpperCase();
+      const orderCode = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
       
       // Create order
       const newOrder = new Order({
         orderId,
+        orderCode,
         userId,
         email: orderData.email,
         totalAmount,

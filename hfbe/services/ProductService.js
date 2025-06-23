@@ -281,6 +281,43 @@ class ProductService {    async getAllProducts(query = {}) {
     }
   }
   
+  // Check if product has existing orders
+  async checkProductOrders(productId) {
+    try {
+      checkDatabaseConnection();
+      
+      const Order = require('../models/Order');
+      
+      // Check if product exists in any orders
+      const existingOrders = await Order.find({
+        'items.productId': productId,
+        deleted: false
+      }).select('orderId status createdAt items.productId items.name items.quantity');
+      
+      const orderCount = existingOrders.length;
+      const activeOrderCount = existingOrders.filter(order => 
+        ['pending', 'processing', 'shipped'].includes(order.status)
+      ).length;
+      
+      return {
+        hasOrders: orderCount > 0,
+        totalOrders: orderCount,
+        activeOrders: activeOrderCount,
+        canDelete: activeOrderCount === 0, // Can only delete if no active orders
+        orders: existingOrders.map(order => ({
+          orderId: order.orderId,
+          status: order.status,
+          createdAt: order.createdAt,
+          productQuantity: order.items.find(item => 
+            item.productId.toString() === productId.toString()
+          )?.quantity || 0
+        }))
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+  
   async searchProducts(searchTerm) {
     try {
       const products = await Product.find({
@@ -300,8 +337,7 @@ class ProductService {    async getAllProducts(query = {}) {
   async getProductStats() {
     try {
       checkDatabaseConnection();
-      
-      const [
+        const [
         totalProducts,
         totalCategories,
         lowStockCount,
@@ -311,15 +347,15 @@ class ProductService {    async getAllProducts(query = {}) {
       ] = await Promise.all([
         Product.countDocuments({ deleted: false }),
         Category.countDocuments({ deleted: false }),
-        Product.countDocuments({ quantity: { $lte: 10, $gt: 0 }, deleted: false }),
-        Product.countDocuments({ quantity: 0, deleted: false }),
+        Product.countDocuments({ stock: { $lte: 10, $gt: 0 }, deleted: false }),
+        Product.countDocuments({ stock: 0, deleted: false }),
         Product.aggregate([
           { $match: { deleted: false } },
           { $group: { _id: null, avgPrice: { $avg: '$price' } } }
         ]),
         Product.aggregate([
           { $match: { deleted: false } },
-          { $group: { _id: null, totalValue: { $sum: { $multiply: ['$price', '$quantity'] } } } }
+          { $group: { _id: null, totalValue: { $sum: { $multiply: ['$price', '$stock'] } } } }
         ])
       ]);
 
@@ -370,14 +406,13 @@ class ProductService {    async getAllProducts(query = {}) {
   async getLowStockProducts(threshold = 10) {
     try {
       checkDatabaseConnection();
-      
-      const products = await Product.find({
-        quantity: { $lte: threshold, $gt: 0 },
+        const products = await Product.find({
+        stock: { $lte: threshold, $gt: 0 },
         deleted: false
       })
       .populate('categoryId', 'name')
-      .sort({ quantity: 1 })
-      .select('name price quantity categoryId imageUrl');
+      .sort({ stock: 1 })
+      .select('name price stock categoryId imageUrl');
 
       return products;
     } catch (error) {

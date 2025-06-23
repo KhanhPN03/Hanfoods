@@ -2,7 +2,6 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Account = require('../models/Account');
 const moment = require('moment');
-const { v4: uuidv4 } = require('uuid');
 
 class AdminController {
   // Dashboard Statistics
@@ -549,12 +548,13 @@ class AdminController {
         error: error.message      });
     }
   }
+
   // Create new user (admin only)
   async createUser(req, res) {
     try {
       const { 
-        firstname, 
-        lastname, 
+        firstName, 
+        lastName, 
         email, 
         phone, 
         password, 
@@ -564,7 +564,7 @@ class AdminController {
       } = req.body;
 
       // Validate required fields
-      if (!firstname || !lastname || !email || !password) {
+      if (!firstName || !lastName || !email || !password) {
         return res.status(400).json({
           success: false,
           message: 'First name, last name, email, and password are required'
@@ -596,49 +596,50 @@ class AdminController {
           success: false,
           message: 'Invalid role specified'
         });
-      }      // Generate account code (unique identifier)
+      }
+
+      // Create address if provided
+      let addressId = null;
+      if (address.street || address.city || address.state || address.zipCode) {
+        const Address = require('../models/Address');
+        const newAddress = new Address({
+          street: address.street || '',
+          city: address.city || '',
+          state: address.state || '',
+          zipCode: address.zipCode || '',
+          country: address.country || 'Vietnam'
+        });
+        const savedAddress = await newAddress.save();
+        addressId = savedAddress._id;
+      }
+
+      // Generate account code (unique identifier)
       const accountCode = `ACC${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-      // Create new user using passport-local-mongoose register method
+      // Create new user
       const newUser = new Account({
-        firstname: firstname,
-        lastname: lastname,
+        firstname: firstName,
+        lastname: lastName,
         email: email.toLowerCase(),
         phone: phone || '',
         accountCode,
         role,
         isActive,
-        username: email.toLowerCase() // Use email as username
+        addressId,
+        createdAt: new Date(),
+        updatedAt: new Date()
       });
 
-      // Use passport-local-mongoose register method to properly handle password
-      const registeredUser = await Account.register(newUser, password);      // Create address after user creation if provided
-      let addressId = null;
-      if (address && (address.street || address.city || address.state || address.postalCode)) {
-        const Address = require('../models/Address');
-        const newAddress = new Address({
-          addressId: uuidv4(),
-          userId: registeredUser._id, // Use the created user's ID
-          street: address.street || '',
-          city: address.city || '',
-          state: address.state || '',
-          postalCode: address.postalCode || '',
-          country: address.country || 'Vietnam',
-          ward: address.ward || '',
-          fullName: address.fullName || '',
-          phone: address.phone || ''
-        });
-        const savedAddress = await newAddress.save();
-        addressId = savedAddress._id;
-
-        // Update user with address ID
-        await Account.findByIdAndUpdate(registeredUser._id, { addressId });
-      }
+      // Set password (this will be hashed by the model's pre-save hook)
+      newUser.password = password;
+      
+      const savedUser = await newUser.save();
 
       // Remove sensitive data before sending response
-      const userResponse = registeredUser.toObject();
+      const userResponse = savedUser.toObject();
       delete userResponse.hash;
       delete userResponse.salt;
+      delete userResponse.password;
 
       res.status(201).json({
         success: true,
@@ -762,6 +763,7 @@ class AdminController {
       });
     }
   }
+
   // Delete user (soft delete)
   async deleteUser(req, res) {
     try {
@@ -804,56 +806,113 @@ class AdminController {
     }
   }
 
-  // Check if user has existing orders
-  async checkUserOrders(req, res) {
+  // Create new user (admin only)
+  async createUser(req, res) {
     try {
-      const { id } = req.params;
-      const Order = require('../models/Order');
-      
-      // Check if user exists in any orders
-      const existingOrders = await Order.find({
-        userId: id,
-        deleted: false
-      }).select('orderId status createdAt totalAmount');
-      
-      const orderCount = existingOrders.length;
-      const activeOrderCount = existingOrders.filter(order => 
-        ['pending', 'processing', 'shipped'].includes(order.status)
-      ).length;
-      
-      const orderData = {
-        hasOrders: orderCount > 0,
-        totalOrders: orderCount,
-        activeOrders: activeOrderCount,
-        canDelete: activeOrderCount === 0, // Can only delete if no active orders
-        orders: existingOrders.map(order => ({
-          orderId: order.orderId,
-          status: order.status,
-          createdAt: order.createdAt,
-          totalAmount: order.totalAmount
-        }))
-      };
+      const { 
+        firstName, 
+        lastName, 
+        email, 
+        phone, 
+        password, 
+        role = 'customer', 
+        isActive = true,
+        address = {}
+      } = req.body;
 
-      // If this is a direct API call, return the data
-      if (res && !res.headersSent) {
-        return res.status(200).json({
-          success: true,
-          data: orderData
-        });
-      }
-      
-      // If called internally, return the data
-      return orderData;
-    } catch (error) {
-      console.error('Check user orders error:', error);
-      if (res && !res.headersSent) {
-        return res.status(500).json({
+      // Validate required fields
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({
           success: false,
-          message: 'Error checking user orders',
-          error: error.message
+          message: 'First name, last name, email, and password are required'
         });
       }
-      throw error;
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide a valid email address'
+        });
+      }
+
+      // Check if user already exists
+      const existingUser = await Account.findOne({ email: email.toLowerCase() });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+
+      // Validate role
+      const validRoles = ['customer', 'admin', 'moderator'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid role specified'
+        });
+      }
+
+      // Create address if provided
+      let addressId = null;
+      if (address.street || address.city || address.state || address.zipCode) {
+        const Address = require('../models/Address');
+        const newAddress = new Address({
+          street: address.street || '',
+          city: address.city || '',
+          state: address.state || '',
+          zipCode: address.zipCode || '',
+          country: address.country || 'Vietnam'
+        });
+        const savedAddress = await newAddress.save();
+        addressId = savedAddress._id;
+      }
+
+      // Generate account code (unique identifier)
+      const accountCode = `ACC${Date.now()}${Math.floor(Math.random() * 1000)}`;
+
+      // Create new user
+      const newUser = new Account({
+        firstname: firstName,
+        lastname: lastName,
+        email: email.toLowerCase(),
+        phone: phone || '',
+        accountCode,
+        role,
+        isActive,
+        addressId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      // Set password (this will be hashed by the model's pre-save hook)
+      newUser.password = password;
+      
+      const savedUser = await newUser.save();
+
+      // Remove sensitive data before sending response
+      const userResponse = savedUser.toObject();
+      delete userResponse.hash;
+      delete userResponse.salt;
+      delete userResponse.password;
+
+      res.status(201).json({
+        success: true,
+        message: 'User created successfully',
+        data: {
+          user: userResponse
+        }
+      });
+
+    } catch (error) {
+      console.error('Create user error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error creating user',
+        error: error.message
+      });
     }
   }
 
@@ -1055,4 +1114,4 @@ class AdminController {
 
 }
 
-module.exports = new AdminController();
+module.exports = AdminController;
